@@ -1,0 +1,17 @@
+# virtual environment
+lvlh_env/
+
+# python build artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+build/
+dist/
+
+# simulation data and figures 
+data/
+figures/
+
+# OS system files
+.DS_Store
