@@ -86,7 +86,7 @@ def _worker_stable_check(task_args):
     S, C, K, rho, delta, seed = task_args 
     sigma = K * (S*C)**(-0.5)
     B = lvf.B_rho(S, C, sigma, seed, L=2, rho=rho)
-    R = lvf.R_star_2stage_delta(B, scale=delta)
+    R = lvf.R_star_2stage_delta(B, delta)
     # return true/false for stable 
     return lvf.check_stable(B, R)
 
