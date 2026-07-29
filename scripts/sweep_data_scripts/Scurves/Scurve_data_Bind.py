@@ -1,0 +1,47 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import lvlh_functions as lvf
+import os
+
+def main():
+    # Sweep Parameters
+    S = 1000
+    C = 1.0
+    rho = 1
+    L = 2
+    delta = 1000
+
+    nruns = 200
+    Ks = np.linspace(0.8, 1.2, 30)
+
+    # arguments for B and R: 
+    extra_args = {'L': L} 
+    R_args = {'delta': delta}
+
+    filestart = f'data/S_curves/B_ind/B_ind'
+    output_dir = os.path.dirname(filestart)
+    if output_dir:  
+        os.makedirs(output_dir, exist_ok=True)
+    
+    # Execute the parallel sweep
+    fracs, frac_errs = lvf.sweeps.generate_S_curve(
+        matrix_function = lvf.B_ind, 
+        S = S, 
+        C = C, 
+        B_args = extra_args, 
+        Ks = Ks, 
+        nruns = nruns, 
+        filestart = filestart,
+        R_args=R_args,
+        maxworkers = 6
+    )
+    plt.fill_between(Ks, fracs-frac_errs, fracs+frac_errs, color='green', alpha = 0.3)
+    plt.plot(Ks, fracs, '.-', color='black', lw = 1)
+    plt.title(f'Stability by K, {S} species, 2 stages, rho = {rho}')
+    plt.grid()
+    plt.xlabel('K')
+    plt.ylabel('fraction of runs stable')
+    plt.show()
+
+if __name__ == "__main__":
+    main()

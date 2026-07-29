@@ -7,6 +7,10 @@ name = "lvlh_functions"
 version = "1.0.0"
 description = "functions for LV modeling with life stages, and analysis of model"
 dependencies = [
+    "numpy",
+    "scipy",
+    "matplotlib"
+
 ]
 
 [tool.setuptools.packages.find]
