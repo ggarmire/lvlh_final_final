@@ -132,8 +132,8 @@ def find_K50_threshold_rho_delta(S, C, rho, delta, nruns, K_guess=1, stepsize = 
             break
         K_current = K_next
         f_current = f_next
-        #if f_current == 0.0 or f_current == 1.0:       # if we are far away, increase stepsize
-            #stepsize *= 2.0
+        if f_current == 0.0 or f_current == 1.0:       # if we are far away, increase stepsize
+            stepsize *= 2.0
     # get a window inside f = (0.4, 0.6) to interpolate for f=0.5
     K_low, K_high = min(K_current, K_next), max(K_current, K_next)
     while True:
