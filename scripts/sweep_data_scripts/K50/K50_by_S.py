@@ -12,14 +12,16 @@ def main():
     save_on = True     # flag to save the data at the end. 
     #save_on = False     # flag to save the data at the end. 
 
-    Ss = [200, 100, 50, 10]
+    # takes ~30 min to run for Ss = [500, 200, 100, 50, 10]
+    Ss = [500, 200, 100, 50, 10]
     C = 1.0
-    rho = 1
+
     L = 2
     delta = 1000
-    nruns = 200
+    nruns = 100
 
-    Kguess=1
+    rho = 1
+    Kguess= 1
 
     # save data stuff here: 
     filestart = f'data/K50_data/K50_ofS/delta={delta}/'
@@ -42,7 +44,7 @@ def main():
     for i, S in enumerate(Ss):
         print(f'on S={S}')
         start = time.time()
-        K50, K50_err, _ = lvf.find_K50_threshold_rho_delta(S, C, rho, delta, nruns, K_guess=Kguess)
+        K50, K50_err, _ = lvf.find_K50_threshold_rho_delta(S, C, rho, delta, nruns, K_guess=Kguess, maxworkers=3)
         K50s[i], K50_errs[i] = K50, K50_err
         end = time.time()
         print(f"S={S}, rho={rho}, delta={delta} -> K50 = {K50:.4f}+-{K50_err:.4f}")

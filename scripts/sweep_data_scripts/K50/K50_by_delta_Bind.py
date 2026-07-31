@@ -20,15 +20,15 @@ def main():
 
     S = 50
 
-    Kguess = 2      # guess a K to make it go a bit faster 
+    Kguess = 1      # guess a K to make it go a bit faster 
 
 
     # save data stuff here: 
-    filestart = f'data/K50_data/K50_ofdelta/S={S}/'
+    filestart = f'data/K50_data/K50_ofdelta_Bind/'
     output_dir = os.path.dirname(filestart)
     if output_dir:  
         os.makedirs(output_dir, exist_ok=True)
-    filename = f"{filestart}K50bydelta_rho{rho:0.2f}_delta{np.min(deltas)}-{np.max(deltas)}_{nruns}rpk.npz"
+    filename = f"{filestart}K50bydelta_Bind_delta{np.min(deltas)}-{np.max(deltas)}_{nruns}rpk.npz"
 
     if save_on: 
         print(f'data will be saved to {filename}')
@@ -44,14 +44,15 @@ def main():
     for i, delta in enumerate(deltas):
         print(f'on delta={delta}')
         start = time.time()
-        K50, K50_err, _ = lvf.find_K50_threshold_rho_delta(S, C, rho, delta, nruns, K_guess=Kguess)
+        #K50, K50_err, _ = lvf.find_K50_threshold_rho_delta(S, C, rho, delta, nruns, K_guess=Kguess)
+        K50, K50_err, _ = lvf.find_K50_threshold_Bind_delta(S, C, delta, nruns, K_guess=Kguess, maxworkers=6)
         K50s[i], K50_errs[i] = K50, K50_err
         end = time.time()
-        print(f"delta={delta}, rho={rho}, delta={delta} -> K50 = {K50:.4f}+-{K50_err:.4f}")
+        print(f"delta={delta}, delta={delta} -> K50 = {K50:.4f}+-{K50_err:.4f}")
         print(f"    took {(end-start)/60} min ({end-start} sec)")
 
     # save the data! 
-    np.savez_compressed(filename, deltas=deltas, K50s=K50s, K50_errs=K50_errs, S=S, rho=rho)
+    np.savez_compressed(filename, deltas=deltas, K50s=K50s, K50_errs=K50_errs, S=S)
     print(f"\nData saved successfully to: {filename}")
 
     # plot to see 
@@ -59,7 +60,7 @@ def main():
     plt.errorbar(deltas, K50s, xerr=K50_err, fmt='o--', ms=10, lw=2, capsize=5)
     plt.xlabel('delta')
     plt.ylabel('K for which 50% of runs are stable')
-    plt.title(f'K50(delta), S={S}, rho={rho}, nruns={nruns}')
+    plt.title(f'K50(delta), S={S}, Bind, nruns={nruns}')
 
     plt.show()
     
