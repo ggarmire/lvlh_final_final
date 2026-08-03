@@ -1,0 +1,157 @@
+import numpy as np
+import lvlh_functions as lvf
+import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
+import os 
+
+def onerun_eigs_rho(rho, S, C, Bseed, delta):
+    ''' 
+    get the eigenvalues for 1 run with C1, Brho; to then plot
+    '''
+    K = 2 * (1+3*rho)**(-0.5)
+    sigma = K* (S*C)**(-0.5)      #C=1 here 
+    B = lvf.B_rho(S, C, sigma, Bseed, L=2, rho=0)
+    R = lvf.R_star_2stage_delta(B, delta)
+    Jac = lvf.Jacobian(B, R)
+    Jeigs = np.linalg.eigvals(Jac)
+    return Jeigs 
+
+def onerun_eigs_Bind(K, S, C, Bseed, delta):
+    ''' 
+    get the eigenvalues for 1 run with C1, Bind; to then plot
+    '''
+    sigma = K* (S*C)**(-0.5)      #C=1 here 
+    B = lvf.B_ind(S, C, sigma, L=2, seed=Bseed)
+    R = lvf.R_star_2stage_delta(B, delta)
+    Jac = lvf.Jacobian(B, R)
+    Jeigs = np.linalg.eigvals(Jac)
+    return Jeigs 
+
+def get_Scurve_data(dir, filename):
+    data = np.load(os.path.join(dir, filename))
+    Ks, fracs = lvf.pad_S_curve(data['Ks'], data['fracs'], )      # continue curve across whole region of K 
+    frac_errs = data['frac_errs']
+    K50 = data['K50']
+    K50_err = data['K50_err']
+    print(len(Ks))
+    print(len(frac_errs))
+    
+
+    return Ks, fracs, frac_errs, K50, K50_err
+
+def S_curve_panel(ax, Ks_onestage, fracs_onestage, frac_errs_onestage, K50_onestage, K50_err_onestage,
+                    Ks_list, fracs_list, frac_errs_list, K50_list, K50_err_list, 
+                    K50_threshold, xlims, legend_title, first_panel=False):
+    S_cols = ['lightskyblue', 'dodgerblue', 'blue']
+    labels = ['S=1000', 'S=100', 'S=25']
+    Scol1 = 'grey'
+    ax.plot(Ks_onestage, fracs_onestage, '-', alpha=0.7, lw = 1, color=Scol1, label='one stage')
+    ax.fill_between(Ks_onestage, fracs_onestage-frac_errs_onestage, fracs_onestage+frac_errs_onestage, alpha=0.3, color=Scol1)
+    ax.vlines(x=K50_threshold, ymin=0, ymax=1, color='black', linestyle='--', lw=1.5, label = r'Large S, $\Delta$ limit')
+    ax.errorbar(K50_onestage, 0.5, xerr=K50_err_onestage, fmt='x', alpha=0.7, ms = 8, color=Scol1)
+
+    nlist = len(Ks_list)
+    for i in range(nlist):
+        Ks = Ks_list[i]; fracs=fracs_list[i]; frac_errs=frac_errs_list[i]; K50 = K50_list[i]; K50_err = K50_err_list[i]
+        ax.plot(Ks, fracs, '-', alpha=1, lw = 1, color=S_cols[i], label=labels[i])
+        ax.fill_between(Ks, fracs-frac_errs, fracs+frac_errs, alpha=0.5, color=S_cols[i])
+        ax.errorbar(K50, 0.5, xerr=K50_err, fmt='x', alpha=0.7, ms = 8, color=S_cols[i])
+
+    if first_panel:
+        handles, labels = ax.get_legend_handles_labels()
+        #order = [1, 2, 3, 4, 0, 5] 
+        leg = ax.legend(
+            #[handles[idx] for idx in order], 
+            #[labels[idx] for idx in order], 
+            handles, 
+            labels, 
+            title=legend_title, 
+            title_fontproperties={'size':11}, 
+            loc='upper right', 
+            fancybox=False, 
+            framealpha=0.3, 
+            edgecolor='white'
+        )
+        leg.get_frame().set_linewidth(0.5)
+        leg.get_texts()[-1].set_fontsize(8)
+    else:
+        leg = ax.legend(title=legend_title, title_fontproperties={'size':11}, loc='upper right', fancybox=False, framealpha=0.3, edgecolor='white')
+        leg.get_frame().set_linewidth(0.5)
+        
+
+
+
+
+
+
+
+
+
+def main():
+
+    # set parameters for eigenvalue plots 
+    S = 100 # change later 
+    C = 1
+    delta = 1000
+
+    # eigenvalues for rho=1, rho=0
+    K1 = 2 * (1+3*1)**(-0.5)
+    K0 = 2 * (1)**(-0.5)
+    Kind = 1
+
+    Jeigs_1 = onerun_eigs_rho(1, S, C, 1, delta)
+    Jeigs_0 = onerun_eigs_rho(0, S, C, 2, delta)
+
+    # eigenvalues for Bind case 
+    Jeigs_ind = onerun_eigs_Bind(1, S, C, 3, delta)
+
+    # load in S curve data 
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    rho_dir = os.path.join(current_dir, '..', '..', 'data', 'S_curves', 'B_rho')
+    ind_dir = os.path.join(current_dir, '..', '..', 'data', 'S_curves', 'B_ind')
+    onestage_dir = os.path.join(current_dir, '..', '..', 'data', 'S_curves', 'one_stage')
+
+    Ks_onestage, fracs_onestage, errs_onestage, K50_onestage, K50_err_onestage = get_Scurve_data(onestage_dir, 'one_stage_S25_1000rpk.npz')
+
+    rho1_files = ['B_rho1.00_S25_500rpk.npz', 'B_rho1.00_S100_50rpk.npz']
+
+    Ks_list_rho1, fracs_list_rho1, errs_list_rho1, K50_list_rho1, K50_err_list_rho1 = zip(*[get_Scurve_data(rho_dir, f) for f in rho1_files])
+
+
+
+
+    # set up plots
+    box_props = dict(boxstyle='square', facecolor='white', alpha=0, edgecolor='None')
+    rho1text = r'2 stages with $B_{\rho}$, $\rho=1$'+f' \nS = {S}, C = {C}, K = {K1:.1f}'
+    rho0text = r'2 stages with $B_{\rho}$, $\rho=0$'+f' \nS = {S}, C = {C}, K = {K0:.3f}'
+    indtext = r'2 stages with $B_{ind}$'+f' \nS = {S}, C = {C}, K = {Kind:.3f}'
+    eigcol = 'olivedrab'
+    Scols = ['lightskyblue', 'dodgerblue', 'blue']
+    Scol1 = 'grey'
+    axfontsize = 10
+
+    fig = plt.figure(figsize=(16, 8))
+    gs = gridspec.GridSpec(2, 3, height_ratios=[6,2.5], width_ratios=[2, 2, 2], hspace=0.3, wspace=0.3)
+    s1 = fig.add_subplot(gs[0, 0])
+    s0 = fig.add_subplot(gs[0, 1])
+    sind = fig.add_subplot(gs[0, 2])
+    eig1 = fig.add_subplot(gs[1, 0])
+    eig0 = fig.add_subplot(gs[1, 1])
+    eigind = fig.add_subplot(gs[1, 2])
+
+
+    # S curve plots 
+    
+    # panel 1: 
+    S_curve_panel(s1, Ks_onestage, fracs_onestage, errs_onestage, K50_onestage, K50_err_onestage, Ks_list_rho1, fracs_list_rho1, errs_list_rho1, K50_list_rho1, K50_err_list_rho1, K1, (0.5, 1.5), r'2 stages, $\rho=1$', first_panel=True)
+    # panel 2: 
+    S_curve_panel(s0, Ks_onestage, fracs_onestage, errs_onestage, K50_onestage, K50_err_onestage, [], [], [], [], [], K1, (0.5, 1.5), r'2 stages, $\rho=0$')
+    # panel 3: 
+    S_curve_panel(sind, Ks_onestage, fracs_onestage, errs_onestage, K50_onestage, K50_err_onestage, [], [], [], [], [], K1, (0.5, 1.5), r'2 stages, $B_{ind}$')
+        
+    plt.show()
+
+if __name__ == "__main__":
+    main()
+
+
