@@ -1,7 +1,15 @@
+import os
+
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
+os.environ["NUMEXPR_NUM_THREADS"] = "1"
+
 import numpy as np
 import matplotlib.pyplot as plt
 import lvlh_functions as lvf
-import os
+
 
 def main():
     # Sweep Parameters
@@ -11,8 +19,8 @@ def main():
     L = 2
     delta = 1000
 
-    nruns = 200
-    Ks = np.linspace(0.8, 1.2, 30)
+    nruns = 500
+    Ks = np.linspace(0.85, 1.25, 30)
 
     # arguments for B and R: 
     extra_args = {'L': L, 'rho': rho} 
@@ -33,7 +41,7 @@ def main():
         nruns = nruns, 
         filestart = filestart,
         R_args=R_args,
-        maxworkers = 8
+        maxworkers = 60
     )
     plt.fill_between(Ks, fracs-frac_errs, fracs+frac_errs, color='green', alpha = 0.3)
     plt.plot(Ks, fracs, '.-', color='black', lw = 1)

@@ -1,10 +1,18 @@
 '''
 For a grid of delta/rho values, find the K value at which 50% of runs are stable (using large Delta limit)
 '''
+import os
+
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
+os.environ["NUMEXPR_NUM_THREADS"] = "1"
+
 import numpy as np
 import matplotlib.pyplot as plt
 import lvlh_functions as lvf
-import os
+
 import time 
 from contextlib import redirect_stdout
 
