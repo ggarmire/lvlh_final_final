@@ -19,7 +19,7 @@ def main():
     L = 2
     delta = 1000
 
-    nruns = 500
+    nruns = 200
     Ks = np.linspace(0.85, 1.25, 30)
 
     # arguments for B and R: 

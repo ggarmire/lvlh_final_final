@@ -60,7 +60,7 @@ def generate_S_curve(matrix_function, S, C, B_args, Ks, nruns, filestart, R_args
         for (i, _), is_stable in zip(tasks, results):
             stable_outcomes[i].append(int(is_stable))
             completed += 1
-            if completed % 50 == 0 or completed == total_tasks: 
+            if completed == 0 or (completed % 10 == 0) or completed == total_tasks: 
                 print(f"{completed}/{total_tasks} cases done ({(completed/total_tasks)*100:.1f}%)", end='\r')
 
     for i, K in enumerate(Ks):
@@ -70,9 +70,24 @@ def generate_S_curve(matrix_function, S, C, B_args, Ks, nruns, filestart, R_args
     end = time.time()
     print(f'took {(end-start)/60} min, {(end-start)/total_tasks} sec per task.')
 
+    # get K50 
+    for idx in range(len(fracs) - 1):
+        f1, f2 = fracs[idx], fracs[idx+1]
+        if (f1 >= 0.5 >= f2) or (f1 <= 0.5 <= f2):
+            f_low = f1; f_high =f2
+            K_low = Ks[idx]; K_high = Ks[idx+1]
+            idx_low = idx
+            K50 = K_high - (K_high-K_low)/(f_high-f_low)*(f_high-0.5)
+
+    # get K50 error 
+    K50_stderr = lvf.bootstrap_interp_error(K_low, K_high, stable_outcomes[idx_low], stable_outcomes[idx_low+1])
+
+
+
     filename = f"{filestart}_S{S}_{nruns}rpk.npz"
-    np.savez_compressed(filename, Ks=Ks, fracs=fracs, frac_errs = frac_errs, S=S)
-    print(f"\nData saved successfully to: {filename}")
+    #np.savez_compressed(filename, Ks=Ks, fracs=fracs, frac_errs = frac_errs, S=S)
+    np.savez_compressed(filename, Ks=Ks, fracs=fracs, frac_errs = frac_errs, K50=K50, K50_err = K50_stderr, S=S)
+    print(f"\nData ( Ks, fracs, frac_errs, K50, K50_err, S) saved successfully to: {filename}")
 
     return fracs, frac_errs
 
