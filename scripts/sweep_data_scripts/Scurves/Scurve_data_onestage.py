@@ -14,8 +14,8 @@ def main():
     # Sweep Parameters
     S = 1000
     C = 1.0
-    nruns = 200
-    Ks = np.linspace(0.9, 1.1, 40)
+    nruns = 500
+    Ks = np.linspace(0.9, 1.1, 20)
 
     # no need for extra arguments in the 1 stage case!
     extra_args = {} 
@@ -34,7 +34,7 @@ def main():
         Ks = Ks, 
         nruns = nruns, 
         filestart = filestart,
-        maxworkers = 5
+        maxworkers = 45
     )
     plt.fill_between(Ks, fracs-frac_errs, fracs+frac_errs, color='green', alpha = 0.3)
     plt.plot(Ks, fracs, '.-', color='black', lw = 1)

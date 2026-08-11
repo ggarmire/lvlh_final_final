@@ -19,8 +19,8 @@ def main():
     L = 2
     delta = 1000
 
-    nruns = 200
-    Ks = np.linspace(0.85, 1.25, 30)
+    nruns = 500
+    Ks = np.linspace(.85, 1.27, 30)
 
     # arguments for B and R: 
     extra_args = {'L': L, 'rho': rho} 
@@ -41,7 +41,7 @@ def main():
         nruns = nruns, 
         filestart = filestart,
         R_args=R_args,
-        maxworkers = 60
+        maxworkers = 45
     )
     plt.fill_between(Ks, fracs-frac_errs, fracs+frac_errs, color='green', alpha = 0.3)
     plt.plot(Ks, fracs, '.-', color='black', lw = 1)
