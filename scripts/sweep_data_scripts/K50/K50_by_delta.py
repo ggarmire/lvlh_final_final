@@ -18,17 +18,17 @@ import time
 def main():
 
     save_on = True     # flag to save the data at the end. 
-    #save_on = False     # flag to save the data at the end. 
+    #save_on = False     # flag to (not( save the data at the end. 
 
-    deltas = [0, 1, 10, 100]
+    deltas = [0.01, 0.1, 1, 10, 100, 1000]
     C = 1.0
-    rho = -1./3.
+    rho = 0.5
     L = 2
-    nruns = 200
+    nruns = 100
 
-    S = 50
+    S = 1000
 
-    Kguess = 2      # guess a K to make it go a bit faster 
+    Kguess = 1.26      # guess a K to make it go a bit faster 
 
 
     # save data stuff here: 
@@ -36,6 +36,7 @@ def main():
     output_dir = os.path.dirname(filestart)
     if output_dir:  
         os.makedirs(output_dir, exist_ok=True)
+
     filename = f"{filestart}K50bydelta_rho{rho:0.2f}_delta{np.min(deltas)}-{np.max(deltas)}_{nruns}rpk.npz"
 
     if save_on: 
@@ -52,7 +53,7 @@ def main():
     for i, delta in enumerate(deltas):
         print(f'on delta={delta}')
         start = time.time()
-        K50, K50_err, _ = lvf.find_K50_threshold_rho_delta(S, C, rho, delta, nruns, K_guess=Kguess)
+        K50, K50_err, _ = lvf.find_K50_threshold_rho_delta(S, C, rho, delta, nruns, K_guess=Kguess, maxworkers=40)
         K50s[i], K50_errs[i] = K50, K50_err
         end = time.time()
         print(f"delta={delta}, rho={rho}, delta={delta} -> K50 = {K50:.4f}+-{K50_err:.4f}")
@@ -62,9 +63,12 @@ def main():
     np.savez_compressed(filename, deltas=deltas, K50s=K50s, K50_errs=K50_errs, S=S, rho=rho)
     print(f"\nData saved successfully to: {filename}")
 
+    print(f'deltas \n{deltas}')
+    print(f'K50s \n{K50s}')
+    print(f'K50errss \n{K50_errs}')
     # plot to see 
     plt.figure(figsize=(8,6))
-    plt.errorbar(deltas, K50s, xerr=K50_err, fmt='o--', ms=10, lw=2, capsize=5)
+    plt.errorbar(deltas, K50s, xerr=K50_errs, fmt='o--', ms=10, lw=2, capsize=5)
     plt.xlabel('delta')
     plt.ylabel('K for which 50% of runs are stable')
     plt.title(f'K50(delta), S={S}, rho={rho}, nruns={nruns}')

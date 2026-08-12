@@ -34,6 +34,7 @@ def generate_S_curve(matrix_function, S, C, B_args, Ks, nruns, filestart, R_args
     maxworkers = max number of CPU cores to use in parallel. If None, will use all available cores.  
     '''
     if maxworkers == None: maxworkers = os.cpu_count()
+    
 
     nKs = len(Ks)
     fracs = np.zeros(nKs)
@@ -108,9 +109,11 @@ def _worker_stable_check(task_args):
 def evaluate_oneK_stablefrac(K, S, C, rho, delta, nruns, maxworkers):
     # set up nruns tasks: find stable/unstable for each run
     tasks = [(S, C, K, rho, delta, seed) for seed in range(nruns)]
+    if nruns < 200: chunksize = 2
+    else: chunksize = 5
     # run tasks in parallel:
     with concurrent.futures.ProcessPoolExecutor(max_workers=maxworkers) as executor:
-        stables = list(executor.map(_worker_stable_check, tasks, chunksize=10))
+        stables = list(executor.map(_worker_stable_check, tasks, chunksize=chunksize))
     # get actual stable frac 
     stable_count = sum(stables)
     stable_frac = stable_count / nruns
@@ -194,9 +197,11 @@ def _worker_stable_check_Bind(task_args):
 def evaluate_oneK_stablefrac_Bind(K, S, C,  delta, nruns, maxworkers):
     # set up nruns tasks: find stable/unstable for each run
     tasks = [(S, C, K, delta, seed) for seed in range(nruns)]
+    if nruns < 200: chunksize = 2
+    else: chunksize = 5
     # run tasks in parallel:
     with concurrent.futures.ProcessPoolExecutor(max_workers=maxworkers) as executor:
-        stables = list(executor.map(_worker_stable_check_Bind, tasks, chunksize=10))
+        stables = list(executor.map(_worker_stable_check_Bind, tasks, chunksize=chunksize))
     # get actual stable frac 
     stable_count = sum(stables)
     stable_frac = stable_count / nruns
