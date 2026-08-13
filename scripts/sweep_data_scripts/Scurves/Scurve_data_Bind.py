@@ -15,7 +15,6 @@ def main():
     # Sweep Parameters
     S = 1000
     C = 1.0
-    rho = 0
     L = 2
     delta = 1000
 
