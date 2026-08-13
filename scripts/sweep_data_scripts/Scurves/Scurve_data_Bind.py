@@ -15,12 +15,12 @@ def main():
     # Sweep Parameters
     S = 1000
     C = 1.0
-    rho = 1
+    rho = 0
     L = 2
     delta = 1000
 
     nruns = 500
-    Ks = np.linspace(0.75, 1.25, 50)
+    Ks = np.linspace(0, 4, 50)
 
     # arguments for B and R: 
     extra_args = {'L': L} 

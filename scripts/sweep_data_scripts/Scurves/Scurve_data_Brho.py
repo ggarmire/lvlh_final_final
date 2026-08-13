@@ -13,14 +13,14 @@ import lvlh_functions as lvf
 
 def main():
     # Sweep Parameters
-    S = 1000
+    S = 100
     C = 1.0
-    rho = 1
+    rho = 0
     L = 2
     delta = 1000
 
     nruns = 500
-    Ks = np.linspace(.85, 1.27, 30)
+    Ks = np.linspace(1.4, 3.6, 50)
 
     # arguments for B and R: 
     extra_args = {'L': L, 'rho': rho} 
@@ -41,7 +41,7 @@ def main():
         nruns = nruns, 
         filestart = filestart,
         R_args=R_args,
-        maxworkers = 45
+        maxworkers = 25
     )
     plt.fill_between(Ks, fracs-frac_errs, fracs+frac_errs, color='green', alpha = 0.3)
     plt.plot(Ks, fracs, '.-', color='black', lw = 1)

@@ -22,13 +22,13 @@ def main():
 
     deltas = [0.01, 0.1, 1, 10, 100, 1000]
     C = 1.0
-    rho = 0.5
+    rho = -1./3.
     L = 2
     nruns = 100
 
     S = 1000
 
-    Kguess = 1.26      # guess a K to make it go a bit faster 
+    Kguess = 30      # guess a K to make it go a bit faster 
 
 
     # save data stuff here: 

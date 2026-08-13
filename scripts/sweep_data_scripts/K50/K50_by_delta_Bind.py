@@ -20,19 +20,18 @@ def main():
     save_on = True     # flag to save the data at the end. 
     #save_on = False     # flag to save the data at the end. 
 
-    deltas = [0, 1, 10, 100]
+    deltas = [0.01, 0.1, 1, 10, 100, 1000]
     C = 1.0
-    rho = -1./3.
     L = 2
-    nruns = 200
+    nruns = 100
 
-    S = 50
+    S = 1000
 
     Kguess = 1      # guess a K to make it go a bit faster 
 
 
     # save data stuff here: 
-    filestart = f'data/K50_data/K50_ofdelta_Bind/'
+    filestart = f'data/K50_data/K50_ofdelta/S={S}/'
     output_dir = os.path.dirname(filestart)
     if output_dir:  
         os.makedirs(output_dir, exist_ok=True)
@@ -53,7 +52,7 @@ def main():
         print(f'on delta={delta}')
         start = time.time()
         #K50, K50_err, _ = lvf.find_K50_threshold_rho_delta(S, C, rho, delta, nruns, K_guess=Kguess)
-        K50, K50_err, _ = lvf.find_K50_threshold_Bind_delta(S, C, delta, nruns, K_guess=Kguess, maxworkers=6)
+        K50, K50_err, _ = lvf.find_K50_threshold_Bind_delta(S, C, delta, nruns, K_guess=Kguess, maxworkers=40)
         K50s[i], K50_errs[i] = K50, K50_err
         end = time.time()
         print(f"delta={delta}, delta={delta} -> K50 = {K50:.4f}+-{K50_err:.4f}")
