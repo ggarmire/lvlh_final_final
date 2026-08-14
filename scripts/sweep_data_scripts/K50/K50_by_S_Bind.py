@@ -20,7 +20,6 @@ def main():
     save_on = True     # flag to save the data at the end. 
     #save_on = False     # flag to save the data at the end. 
 
-    # takes ~30 min to run for Ss = [500, 200, 100, 50, 10]
     Ss = [1000, 500, 200, 100, 50, 25, 10]
     C = 1.0
 
@@ -51,20 +50,20 @@ def main():
     for i, S in enumerate(Ss):
         print(f'on S={S}')
         start = time.time()
-        K50, K50_err, _ = lvf.find_K50_threshold_Bind_delta(S, C, delta, nruns, K_guess=Kguess, maxworkers=40)
+        K50, K50_err, _ = lvf.find_K50_threshold_Bind_delta(S, C, delta, nruns, K_guess=Kguess, maxworkers=80)
         K50s[i], K50_errs[i] = K50, K50_err
         end = time.time()
         print(f"S={S} delta={delta} -> K50 = {K50:.4f}+-{K50_err:.4f}")
         print(f"    took {(end-start)/60} min ({end-start} sec)")
 
     # save the data! 
-    np.savez_compressed(filename, Ss=Ss, K50s=K50s, K50_errs=K50_errs, delta=delta, rho=rho)
+    np.savez_compressed(filename, Ss=Ss, K50s=K50s, K50_errs=K50_errs, delta=delta)
     print(f"\nData saved successfully to: {filename}")
 
     print(f'S={Ss}\n K50s={K50s}\n Kerr={K50_err}')
     # plot to see 
     plt.figure(figsize=(8,6))
-    plt.errorbar(Ss, K50s, xerr=K50_err, fmt='o--', ms=10, lw=2, capsize=5)
+    plt.errorbar(Ss, K50s, xerr=K50_err, ms=10, lw=2, capsize=5)
     plt.xlabel('number of species S')
     plt.ylabel('K for which 50% of runs are stable')
     plt.title(f'K50(S), delta={delta}, rho={rho}, nruns={nruns}')
