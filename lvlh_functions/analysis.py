@@ -14,7 +14,7 @@ def check_stable(B, R):
 
 
 # pad the S curve to min and max K values 
-def pad_S_curve(Ks, fracs, kmin = 0.5, kmax = 1.5):
+def pad_S_curve(Ks, fracs, frac_errs, kmin = 0.5, kmax = 1.5):
     '''
     This adds extension on to the S curves at high S, where I didnt compute the tails all the way to kmin and kmax.
     Ks = Ks used in S curve generation 
@@ -22,14 +22,16 @@ def pad_S_curve(Ks, fracs, kmin = 0.5, kmax = 1.5):
     kmin = where to extend S curve to on the left 
     kmax = where to extend S curve to on the right  
     '''
-    kpad = np.copy(Ks); fpad = np.copy(fracs)
+    kpad = np.copy(Ks); fpad = np.copy(fracs); ferrpad = np.copy(frac_errs)
     if kpad[0] > kmin:
         kpad = np.insert(kpad, 0, kmin)
         fpad = np.insert(fpad, 0, 1.0)
+        ferrpad = np.insert(ferrpad, 0, 0.0)
     if kpad[-1] < kmax:
         kpad = np.append(kpad, kmax)
         fpad = np.append(fpad, 0.0)
-    return kpad, fpad
+        ferrpad = np.append(ferrpad, 0.0)
+    return kpad, fpad, ferrpad
 
 
 # bootstrapping function for uncertainty estimates 

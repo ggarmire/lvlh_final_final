@@ -20,7 +20,7 @@ def single_run_single_stage(S, K, C, ts, Aseed, x0seed=None):
 
 def main():
     # common parameters: 
-    S = 200     # number of species 
+    S = 500     # number of species 
     C = 1       # connectance
     ts = np.linspace(0, 100, 1000)
 
@@ -31,8 +31,8 @@ def main():
     J1eig, _ = np.linalg.eig(Jac1)
 
     # high K run: 
-    K2 = 1.1 
-    Aseed2 = 8
+    K2 = 1.1
+    Aseed2 = 5
     result2, Jac2 = single_run_single_stage(S, K2, C, ts, Aseed2)
     J2eig, _ = np.linalg.eig(Jac2)
 
@@ -40,13 +40,17 @@ def main():
     current_dir = os.path.dirname(os.path.abspath(__file__))
     data_dir = os.path.join(current_dir, '..', '..', 'data', 'S_curves', 'one_stage')
 
-    data_s25 = np.load(os.path.join(data_dir, 'one_stage_s25_1000rpk.npz'))
+    data_s25 = np.load(os.path.join(data_dir, 'one_stage_s25_500rpk.npz'))
     data_s100 = np.load(os.path.join(data_dir, 'one_stage_s100_500rpk.npz'))
-    data_s1000 = np.load(os.path.join(data_dir, 'one_stage_s1000_200rpk.npz'))
+    data_s1000 = np.load(os.path.join(data_dir, 'one_stage_s1000_500rpk.npz'))
 
     Ks_25, fracs_25 = lvf.pad_S_curve(data_s25['Ks'], data_s25['fracs'])
     Ks_100, fracs_100 = lvf.pad_S_curve(data_s100['Ks'], data_s100['fracs'])
     Ks_1000, fracs_1000 = lvf.pad_S_curve(data_s1000['Ks'], data_s1000['fracs'])
+    K50_25 = data_s25['K50']
+    K50_100 = data_s100['K50']
+    K50_1000 = data_s1000['K50']
+
 
     # find 50% thresholds with error here
 
@@ -54,7 +58,6 @@ def main():
     box_props = dict(boxstyle='square', facecolor='white', alpha=0.7, edgecolor='None')
     K1text = f'Single Stage \nS = {S}, C = {C}, K = {K1}'
     K2text = f'Single Stage \nS = {S}, C = {C}, K = {K2}'
-    eigcol = 'olivedrab'
     axfontsize = 12
 
     fig = plt.figure(figsize=(14, 7))
@@ -87,10 +90,10 @@ def main():
     res2.set_ylim(bottom=0)
 
     #eig1.grid()
-    col_eig1 = np.where(np.real(J1eig) > 0,  'sienna', 'green')
+    col_eig1 = np.where(np.real(J1eig) > 0,  'darkred', 'green')
     eig1.axhline(0, color='black', linewidth=1, linestyle='--')
     eig1.axvline(0, color='black', linewidth=1, linestyle='--')
-    eig1.scatter(np.real(J1eig), np.imag(J1eig), s = 9, c=col_eig1) 
+    eig1.scatter(np.real(J1eig), np.imag(J1eig), s = 4, c=col_eig1) 
     eig1.set_xlabel(r'$\text{Re}(\lambda_J$)', fontsize=axfontsize)
     eig1.set_ylabel(r'$\text{Im}(\lambda_J$)', fontsize=axfontsize)
     #eig1.set_title('K=0.9')
@@ -100,10 +103,10 @@ def main():
     eig1.text(0.05, 0.97, K1text, transform=eig1.transAxes, fontsize=9, verticalalignment='top', bbox=box_props)
     
     #eig2.grid()
-    col_eig2 = np.where(np.real(J2eig) > 0,  'sienna', 'green')
+    col_eig2 = np.where(np.real(J2eig) > 0,  'firebrick', 'green')
     eig2.axhline(0, color='black', linewidth=1, linestyle='--')
     eig2.axvline(0, color='black', linewidth=1, linestyle='--') 
-    eig2.scatter(np.real(J2eig), np.imag(J2eig), s = 9, c=col_eig2)
+    eig2.scatter(np.real(J2eig), np.imag(J2eig), s = 4, c=col_eig2)
     eig2.set_xlabel(r'$\text{Re}(\lambda_J$)', fontsize=axfontsize)
     eig2.set_ylabel(r'$\text{Im}(\lambda_J$)', fontsize=axfontsize)
     #eig2.set_title('K=1.1')
@@ -115,9 +118,16 @@ def main():
     
     ax_s.vlines(x=1, ymin=0, ymax=1, color='slategray', linestyle='--', lw=1.5, label='large S limit')
     #ax_s.hlines(y=0.5, xmin=0.5, xmax=1.5, color='black', linestyle='--', lw=1, alpha = 0.5)
+    ax_s.fill_between(Ks_1000, fracs_1000-frac_errs_1000, fracs_100+frac_errs_1000, alpha=0.5, color='blue')
     ax_s.plot(Ks_1000, fracs_1000, '-', alpha=1, lw = 1.5, color='blue', label='S=1000')
+    
+            
     ax_s.plot(Ks_100, fracs_100, '-', alpha=1, lw = 1.5, color='dodgerblue', label='S=100')
     ax_s.plot(Ks_25, fracs_25, '-', alpha=1, lw = 1.5, color='lightskyblue', label='S=25')
+    ax_s.plot(K50_1000, 0.5, 'x', ms = 8, color='blue')
+    ax_s.plot(K50_100, 0.5, 'x', ms = 8, color='dodgerblue')
+    ax_s.plot(K50_25, 0.5, 'x', ms = 8, color='lightskyblue')
+
     ax_s.set_xlim(0.5, 1.5)
     ax_s.set_ylim(-0.01, 1.01)
     #ax_s.text(0.96, 0.5, 'large S stability threshold', color='black', rotation=90, va='top', fontsize=8)
