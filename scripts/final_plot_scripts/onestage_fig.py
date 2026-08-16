@@ -118,7 +118,7 @@ def main():
     
     ax_s.vlines(x=1, ymin=0, ymax=1, color='slategray', linestyle='--', lw=1.5, label='large S limit')
     #ax_s.hlines(y=0.5, xmin=0.5, xmax=1.5, color='black', linestyle='--', lw=1, alpha = 0.5)
-    ax_s.fill_between(Ks_1000, fracs_1000-frac_errs_1000, fracs_100+frac_errs_1000, alpha=0.5, color='blue')
+    ax_s.fill_between(Ks_1000, fracs_1000-frac_errs_1000, fracs_1000+frac_errs_1000, alpha=0.5, color='blue')
     ax_s.plot(Ks_1000, fracs_1000, '-', alpha=1, lw = 1.5, color='blue', label='S=1000')
     
             

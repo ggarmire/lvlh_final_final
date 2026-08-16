@@ -9,7 +9,8 @@ description = "functions for LV modeling with life stages, and analysis of model
 dependencies = [
     "numpy",
     "scipy",
-    "matplotlib"
+    "matplotlib",
+    "brokenaxes"
 
 ]
 

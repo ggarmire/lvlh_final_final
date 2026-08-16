@@ -3,6 +3,7 @@ import lvlh_functions as lvf
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import os 
+from brokenaxes import brokenaxes
 
 def onerun_eigs_rho(rho, S, C, Bseed, delta):
     ''' 
@@ -81,16 +82,29 @@ def S_curve_panel(ax, Ks_onestage, fracs_onestage, frac_errs_onestage, K50_onest
     #    leg = ax.legend(title=legend_title, title_fontproperties={'size':11}, loc='upper right', fancybox=False, framealpha=0.3, edgecolor='white')
     #    leg.get_frame().set_linewidth(0.5)
     
-def eig_panel(ax, Jeigs, text, xlim=None, ylim=None, first_panel=False):
+def eig_panel(ax, Jeigs, text, ylim=None, first_panel=False):
     box_props = dict(boxstyle='square', facecolor='white', alpha=0, edgecolor='None')
     colors = np.where(np.real(Jeigs) > 0, 'red', 'green')
     ax.axhline(0, color='black', linewidth=1, linestyle='--')
     ax.axvline(0, color='black', linewidth=1, linestyle='--')
-    ax.scatter(np.real(Jeigs), np.imag(Jeigs), c=colors, s=5)
+    ax.scatter(np.real(Jeigs), np.imag(Jeigs), c=colors, s=3)
     ax.set_xlabel(r'Re($\lambda_{J}$)')
     #ax.set_xlim(xlim)
-    ax.set_ylim(ylim)
-    ax.text(0.05, 0.97, text, transform=ax.transAxes, fontsize=9, verticalalignment='top', bbox=box_props)
+    if ylim is not None:
+        ax.set_ylim(ylim)
+    target_ax = ax.axs[0]
+    '''for sub_ax in ax.axs:
+        sub_ax.spines['bottom'].set_position('zero')
+        sub_ax.spines['left'].set_position('zero')
+        sub_ax.spines['top'].set_visible(False)
+        sub_ax.spines['right'].set_visible(False)'''
+        
+    break_left = ax.axs[0].get_xlim()[1]
+    break_right = ax.axs[1].get_xlim()[0]
+    
+    ax.axs[0].text(break_left, 0, '/', fontsize=14, weight= 300, ha='center', va='center', zorder=10)
+    ax.axs[1].text(break_right, 0, '/', fontsize=14, ha='center', va='center', zorder=10)
+    #ax.text(0.05, 0.97, text, transform=ax.transAxes, fontsize=9, verticalalignment='top', bbox=box_props)
     
 
     if first_panel:
@@ -103,7 +117,7 @@ def eig_panel(ax, Jeigs, text, xlim=None, ylim=None, first_panel=False):
 def main():
 
     # set parameters for eigenvalue plots 
-    S = 100 # change later 
+    S = 200 # change later 
     C = 1
     delta = 1000
 
@@ -152,9 +166,14 @@ def main():
     s1 = fig.add_subplot(gs[0, 0])
     s0 = fig.add_subplot(gs[0, 1])
     sind = fig.add_subplot(gs[0, 2])
-    eig1 = fig.add_subplot(gs[1, 0])
-    eig0 = fig.add_subplot(gs[1, 1])
-    eigind = fig.add_subplot(gs[1, 2])
+
+    # for broken axis: 
+    xlims_broken1 = ((-2010, -1998), (-5, 1))
+    xlims_broken0 = ((-2015, -1998), (-5, 1))
+    xlims_brokenind = ((-2010, -1998), (-5, 1))
+    eig1 = brokenaxes(xlims=xlims_broken1, subplot_spec=gs[1, 0], fig=fig, wspace=0.1, d=0.0045, tilt=70)
+    eig0 = brokenaxes(xlims=xlims_broken0, subplot_spec=gs[1, 1], fig=fig,  wspace=0.1, d=0.0045, tilt=70)
+    eigind = brokenaxes(xlims=xlims_brokenind, subplot_spec=gs[1, 2], fig=fig,  wspace=0.1, d=0.0045, tilt=70)
 
 
     # S curve plots 
@@ -172,9 +191,12 @@ def main():
     e0text = r'2 stages with $B_{\rho}$, $\rho=0$'+f' \nS = {S}, C = {C}, K = {K0:.1f}'
     eindtext = r'2 stages with $B_{ind}$'+f' \nS = {S}, C = {C}, K = {Kind:.3f}'
 
-    eig_panel(eig1, Jeigs_1, e1text, (-5, 1), (-1.1, 1.1), first_panel=True)
-    eig_panel(eig0, Jeigs_0, e0text, (-20, 1))
-    eig_panel(eigind, Jeigs_ind, eindtext, (-20, 1))
+    
+
+
+    eig_panel(eig1, Jeigs_1, e1text, (-1.1, 1.1), first_panel=True)
+    eig_panel(eig0, Jeigs_0, e0text)
+    eig_panel(eigind, Jeigs_ind, eindtext)
     #eig_panel(eig0, Jeigs_0, e0text, (-20, 1))
     #eig_panel(eigind, Jeigs_ind, eindtext, (-20, 1))
 
