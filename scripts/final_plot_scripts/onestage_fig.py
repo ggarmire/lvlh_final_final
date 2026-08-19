@@ -20,7 +20,7 @@ def single_run_single_stage(S, K, C, ts, Aseed, x0seed=None):
 
 def main():
     # common parameters: 
-    S = 500     # number of species 
+    S = 200     # number of species 
     C = 1       # connectance
     ts = np.linspace(0, 100, 1000)
 
@@ -32,7 +32,7 @@ def main():
 
     # high K run: 
     K2 = 1.1
-    Aseed2 = 5
+    Aseed2 = 2
     result2, Jac2 = single_run_single_stage(S, K2, C, ts, Aseed2)
     J2eig, _ = np.linalg.eig(Jac2)
 
@@ -44,12 +44,13 @@ def main():
     data_s100 = np.load(os.path.join(data_dir, 'one_stage_s100_500rpk.npz'))
     data_s1000 = np.load(os.path.join(data_dir, 'one_stage_s1000_500rpk.npz'))
 
-    Ks_25, fracs_25 = lvf.pad_S_curve(data_s25['Ks'], data_s25['fracs'])
-    Ks_100, fracs_100 = lvf.pad_S_curve(data_s100['Ks'], data_s100['fracs'])
-    Ks_1000, fracs_1000 = lvf.pad_S_curve(data_s1000['Ks'], data_s1000['fracs'])
-    K50_25 = data_s25['K50']
-    K50_100 = data_s100['K50']
-    K50_1000 = data_s1000['K50']
+    Ks_25, fracs_25, frac_errs_25 = lvf.pad_S_curve(data_s25['Ks'], data_s25['fracs'], data_s25['frac_errs'])
+    Ks_100, fracs_100, frac_errs_100 = lvf.pad_S_curve(data_s100['Ks'], data_s100['fracs'], data_s100['frac_errs'])
+    Ks_1000, fracs_1000, frac_errs_1000 = lvf.pad_S_curve(data_s1000['Ks'], data_s1000['fracs'], data_s1000['frac_errs'])
+    K50_25, K50_err_25 = data_s25['K50'], data_s25['K50_err']
+    K50_100, K50_err_100 = data_s100['K50'], data_s100['K50_err']
+    K50_1000, K50_err_1000 = data_s1000['K50'], data_s1000['K50_err']
+
 
 
     # find 50% thresholds with error here
@@ -93,7 +94,7 @@ def main():
     col_eig1 = np.where(np.real(J1eig) > 0,  'darkred', 'green')
     eig1.axhline(0, color='black', linewidth=1, linestyle='--')
     eig1.axvline(0, color='black', linewidth=1, linestyle='--')
-    eig1.scatter(np.real(J1eig), np.imag(J1eig), s = 4, c=col_eig1) 
+    eig1.scatter(np.real(J1eig), np.imag(J1eig), s = 8, c=col_eig1) 
     eig1.set_xlabel(r'$\text{Re}(\lambda_J$)', fontsize=axfontsize)
     eig1.set_ylabel(r'$\text{Im}(\lambda_J$)', fontsize=axfontsize)
     #eig1.set_title('K=0.9')
@@ -106,7 +107,7 @@ def main():
     col_eig2 = np.where(np.real(J2eig) > 0,  'firebrick', 'green')
     eig2.axhline(0, color='black', linewidth=1, linestyle='--')
     eig2.axvline(0, color='black', linewidth=1, linestyle='--') 
-    eig2.scatter(np.real(J2eig), np.imag(J2eig), s = 4, c=col_eig2)
+    eig2.scatter(np.real(J2eig), np.imag(J2eig), s = 8, c=col_eig2)
     eig2.set_xlabel(r'$\text{Re}(\lambda_J$)', fontsize=axfontsize)
     eig2.set_ylabel(r'$\text{Im}(\lambda_J$)', fontsize=axfontsize)
     #eig2.set_title('K=1.1')
@@ -115,20 +116,28 @@ def main():
     eig2.set_ylim([-1.4, 1.4])
     eig2.text(0.05, 0.97, K2text, transform=eig2.transAxes, fontsize=9, verticalalignment='top', bbox=box_props)
 
-    
-    ax_s.vlines(x=1, ymin=0, ymax=1, color='slategray', linestyle='--', lw=1.5, label='large S limit')
-    #ax_s.hlines(y=0.5, xmin=0.5, xmax=1.5, color='black', linestyle='--', lw=1, alpha = 0.5)
-    ax_s.fill_between(Ks_1000, fracs_1000-frac_errs_1000, fracs_1000+frac_errs_1000, alpha=0.5, color='blue')
-    ax_s.plot(Ks_1000, fracs_1000, '-', alpha=1, lw = 1.5, color='blue', label='S=1000')
-    
-            
-    ax_s.plot(Ks_100, fracs_100, '-', alpha=1, lw = 1.5, color='dodgerblue', label='S=100')
-    ax_s.plot(Ks_25, fracs_25, '-', alpha=1, lw = 1.5, color='lightskyblue', label='S=25')
-    ax_s.plot(K50_1000, 0.5, 'x', ms = 8, color='blue')
-    ax_s.plot(K50_100, 0.5, 'x', ms = 8, color='dodgerblue')
-    ax_s.plot(K50_25, 0.5, 'x', ms = 8, color='lightskyblue')
 
-    ax_s.set_xlim(0.5, 1.5)
+    # S curve panel 
+    S_cols = ['lightskyblue', 'dodgerblue', 'blue']
+    labels = ['S=1000', 'S=100', 'S=25']
+    nlist = len(S_cols)
+
+    Ks_list = Ks_25, Ks_100, Ks_1000
+    fracs_list = fracs_25, fracs_100, fracs_1000
+    frac_errs_list = frac_errs_25, frac_errs_100, frac_errs_1000
+    K50_list = K50_25, K50_100, K50_1000
+    K50_err_list = K50_err_25, K50_err_100, K50_err_1000
+
+    ax_s.vlines(x=1, ymin=0, ymax=1, color='slategray', linestyle='--', lw=1.5, label='large S limit')
+    
+    
+    for i in range(nlist):
+            Ks = Ks_list[i]; fracs=fracs_list[i]; frac_errs=frac_errs_list[i]; K50 = K50_list[i]; K50_err = K50_err_list[i]
+            ax_s.plot(Ks, fracs, '-', alpha=1, lw = 1, color=S_cols[i], label=labels[i])
+            ax_s.fill_between(Ks, fracs-frac_errs, fracs+frac_errs, alpha=0.3, color=S_cols[i])
+            ax_s.errorbar(K50, 0.5, xerr=K50_err, fmt='x', alpha=1, ms = 10, color=S_cols[i])
+    
+    ax_s.set_xlim(0.7, 1.5)
     ax_s.set_ylim(-0.01, 1.01)
     #ax_s.text(0.96, 0.5, 'large S stability threshold', color='black', rotation=90, va='top', fontsize=8)
     ax_s.set_xlabel(r'complexity $K$', fontsize=axfontsize)
@@ -152,7 +161,7 @@ def main():
 
     plt.tight_layout()
 
-    plt.savefig('figures/onestage_ev.png', dpi=300, bbox_inches='tight')
+    plt.savefig('figures/onestage_ev.pdf', dpi=300, bbox_inches='tight')
     plt.show()
 
     plt.show()

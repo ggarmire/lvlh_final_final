@@ -62,15 +62,13 @@ def S_curve_panel(ax, Ks_onestage, fracs_onestage, frac_errs_onestage, K50_onest
     
 
     handles, labels = ax.get_legend_handles_labels()
-    #order = [1, 2, 3, 4, 0, 5] 
     if first_panel:
         leg = ax.legend(
-            #[handles[idx] for idx in order], 
-            #[labels[idx] for idx in order], 
             handles, 
             labels, 
             title=legend_title, 
             title_fontproperties={'size':11}, 
+            fontsize=9,
             loc='upper right', 
             fancybox=False, 
             framealpha=0.3, 
@@ -154,7 +152,7 @@ def main():
 
     rho1_files = ['B_rho1.00_S25_500rpk.npz', 'B_rho1.00_S100_500rpk.npz', 'B_rho1.00_S1000_500rpk.npz']
     Ks_list_rho1, fracs_list_rho1, errs_list_rho1, K50_list_rho1, K50_err_list_rho1 = zip(*[get_Scurve_data(rho_dir, f) for f in rho1_files])
-    rho0_files = ['B_rho0.00_S25_500rpk.npz', 'B_rho0.00_S100_500rpk.npz'] #, 'B_rho0.00_S1000_500rpk.npz']
+    rho0_files = ['B_rho0.00_S25_500rpk.npz', 'B_rho0.00_S100_500rpk.npz', 'B_rho0.00_S1000_500rpk.npz']
     Ks_list_rho0, fracs_list_rho0, errs_list_rho0, K50_list_rho0, K50_err_list_rho0 = zip(*[get_Scurve_data(rho_dir, f) for f in rho0_files])
     Bind_files = ['B_ind_S25_500rpk.npz', 'B_ind_S100_500rpk.npz', 'B_ind_S1000_500rpk.npz']
     Ks_list_Bind, fracs_list_Bind, errs_list_Bind, K50_list_Bind, K50_err_list_Bind = zip(*[get_Scurve_data(ind_dir, f) for f in Bind_files])
@@ -192,11 +190,11 @@ def main():
     
     # panel 1: 
     S_curve_panel(s1, Ks_onestage, fracs_onestage, errs_onestage, K50_onestage, K50_err_onestage, Ks_list_rho1, fracs_list_rho1, errs_list_rho1, K50_list_rho1, K50_err_list_rho1, 
-                  K1, (0.7, 1.5), r'2 stages, $\rho=1$', first_panel=True)
+                  K1, (0.7, 1.4), r'2 stages, $\rho=1$', first_panel=True)
     S_curve_panel(s0, Ks_onestage, fracs_onestage, errs_onestage, K50_onestage, K50_err_onestage, Ks_list_rho0, fracs_list_rho0, errs_list_rho0, K50_list_rho0, K50_err_list_rho0,
                   K0, (0.7, 3), r'2 stages, $\rho=0$')
     S_curve_panel(sind, Ks_onestage, fracs_onestage, errs_onestage, K50_onestage, K50_err_onestage, Ks_list_Bind, fracs_list_Bind, errs_list_Bind, K50_list_Bind, K50_err_list_Bind,
-                  K1, (0.7, 1.5), r'2 stages, $B_{ind}$')
+                  K1, (0.7, 1.4), r'2 stages, $B_{ind}$')
 
     # eigenvalue plots 
     e1text = r'2 stages, $B_{\rho}$, $\rho=1$'+f' \nS = {S}, C = {C}, K = {K1:.1f}'
