@@ -150,9 +150,9 @@ def main():
 
     Ks_onestage, fracs_onestage, errs_onestage, K50_onestage, K50_err_onestage = get_Scurve_data(onestage_dir, 'one_stage_S1000_500rpk.npz')
 
-    rho1_files = ['B_rho1.00_S25_500rpk.npz', 'B_rho1.00_S100_500rpk.npz', 'B_rho1.00_S1000_500rpk.npz']
+    rho1_files = ['B_rho1.00_S25_1000rpk.npz', 'B_rho1.00_S100_500rpk.npz', 'B_rho1.00_S1000_500rpk.npz']
     Ks_list_rho1, fracs_list_rho1, errs_list_rho1, K50_list_rho1, K50_err_list_rho1 = zip(*[get_Scurve_data(rho_dir, f) for f in rho1_files])
-    rho0_files = ['B_rho0.00_S25_500rpk.npz', 'B_rho0.00_S100_500rpk.npz', 'B_rho0.00_S1000_500rpk.npz']
+    rho0_files = ['B_rho0.00_S25_1000rpk.npz', 'B_rho0.00_S100_500rpk.npz', 'B_rho0.00_S1000_500rpk.npz']
     Ks_list_rho0, fracs_list_rho0, errs_list_rho0, K50_list_rho0, K50_err_list_rho0 = zip(*[get_Scurve_data(rho_dir, f) for f in rho0_files])
     Bind_files = ['B_ind_S25_500rpk.npz', 'B_ind_S100_500rpk.npz', 'B_ind_S1000_500rpk.npz']
     Ks_list_Bind, fracs_list_Bind, errs_list_Bind, K50_list_Bind, K50_err_list_Bind = zip(*[get_Scurve_data(ind_dir, f) for f in Bind_files])
