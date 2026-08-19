@@ -5,6 +5,7 @@ import lvlh_functions as lvf
 import time 
 from scipy.sparse.linalg import eigs
 from scipy.interpolate import interp1d
+from contextlib import redirect_stdout
 
 
 # S curves 
@@ -270,6 +271,77 @@ def find_K50_threshold_Bind_delta(S, C, delta, nruns, K_guess=1, stepsize = 0.4,
     K50_err = lvf.bootstrap_interp_error(K_low, K_high, stables_low, stables_high)
 
     return K50, K50_err, K_history_fracs
+
+def _worker_map_point(args):
+    irho, jdelta, rho, delta, S, C, nruns, Kguess = args
+    start = time.time()
+
+    with open(os.devnull, 'w') as f, redirect_stdout(f):
+        # NOTE: Ensure evaluate_oneK_stablefrac runs SYNCHRONOUSLY inside this function
+        K50, K50_err, _ = lvf.find_K50_threshold_rho_delta(
+            S, C, rho, delta, nruns, K_guess=Kguess
+        )
+        
+    runtime = time.time() - start
+    return irho, jdelta, rho, delta, K50, K50_err, runtime
+
+def generate_rhodelta_map(S, C, rhos, deltas, nruns, filestart=None, maxworkers=None):
+    '''
+    Find the 50% stable threshold for many values in a rho vs delta map.
+    S = number of species 
+    C = connectance 
+    rhos = rho values to use
+    deltas = delta values to use 
+    nruns = number of runs tried at each K 
+    filestart = 
+    maxworkers = max number of CPU cores to use in parallel. If None, will use all available cores.  
+    '''
+    if maxworkers is None: 
+        maxworkers = os.cpu_count()
+    nrhos = len(rhos)
+    ndeltas = len(deltas)
+
+    K50s = np.zeros((nrhos, ndeltas)) 
+    K50_errs = np.zeros((nrhos, ndeltas)) 
+    runtimes = np.zeros((nrhos, ndeltas))
+
+    print(f"Starting heatmap sweep for S={S}, {nrhos} rhos, {ndeltas} deltas.")
+    print(f"Using {maxworkers} CPU cores.")
+    start_total = time.time()
+
+    # array of all tasks for parallelization 
+    tasks = []
+    for irho, rho in enumerate(rhos):
+        Kguess = 2/((1+3*rho)**(-0.5)) if rho > -0.25 else 5.0
+        for jdelta, delta in enumerate(deltas):
+            tasks.append((irho, jdelta, rho, delta, S, C, nruns, Kguess))
+
+    total_tasks = len(tasks)
+    print(f'{total_tasks} tasks to complete.')
+    completed = 0
+
+    with concurrent.futures.ProcessPoolExecutor(max_workers=maxworkers) as executor:
+        results = executor.map(_worker_map_point, tasks, chunksize=1)
+        for irho, jdelta, rho, delta, K50, K50_err, rt in results:
+            K50s[irho, jdelta] = K50
+            K50_errs[irho, jdelta] = K50_err
+            runtimes[irho, jdelta] = rt
+            completed += 1
+            print(f"[{completed:3d}/{total_tasks}] rho={rho:.2f}, delta={delta:.2e} -> K50={K50:.3f} +- {K50_err:.3f} ({rt:.1f}s)")
+
+    if filestart:
+        output_dir = os.path.dirname(filestart)
+        if output_dir:  
+            os.makedirs(output_dir, exist_ok=True)
+        filename = f"{filestart}_S{S}_{nruns}rpk.npz"
+        np.savez_compressed(
+            filename, deltas=deltas, rhos=rhos, 
+            K50s=K50s, K50_errs=K50_errs, runtimes=runtimes, 
+            nruns=nruns, S=S, C=C
+        )
+        print(f"Data saved successfully to: {filename}")
+
+    return K50s, K50_errs, runtimes
     
 
 
