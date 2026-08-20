@@ -7,17 +7,19 @@ import lvlh_functions as lvf
 
 def main():
     # set parameters 
-    S = 100
-    rho = 0
-    delta = 10    
-    nruns = 100
-    maxworkers = 6
+    S = 500
+    rho = -1./3.
+    delta = 1000    
+    nruns = 50
+    maxworkers = 7
+
+    K_guess = 40
 
     C = 1
     start = time.time()
     print('start!')
 
-    K50, K50_err, K_history_fracs = lvf.find_K50_threshold_rho_delta(S, C, rho, delta, nruns)
+    K50, K50_err, K_history_fracs = lvf.find_K50_threshold_rho_delta(S, C, rho, delta, nruns, K_guess=K_guess)
 
     end = time.time()
 
