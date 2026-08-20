@@ -21,11 +21,11 @@ def main():
     save_on = True
     #save_on = False
 
-    ndeltas = 3
-    nrhos = 4
+    ndeltas = 10
+    nrhos = 15
 
     nruns = 100
-    S = 100
+    S = 500
     
     deltas = np.logspace(-3, 3, ndeltas) 
     rhos = np.linspace(-1./3., 1, nrhos)
@@ -36,7 +36,9 @@ def main():
     filestart = f'data/K50_data/K50_deltarhomap/' if save_on else None
 
 
-    K50s, K50_errs, runtimes = lvf.generate_rhodelta_map(S, C, rhos, deltas, nruns, filestart, maxworkers=6)
+    K50s, K50_errs, runtimes = lvf.generate_rhodelta_map(S, C, rhos, deltas, nruns, filestart, maxworkers=80)
+
+
 
 
 

@@ -277,9 +277,8 @@ def _worker_map_point(args):
     start = time.time()
 
     with open(os.devnull, 'w') as f, redirect_stdout(f):
-        # NOTE: Ensure evaluate_oneK_stablefrac runs SYNCHRONOUSLY inside this function
         K50, K50_err, _ = lvf.find_K50_threshold_rho_delta(
-            S, C, rho, delta, nruns, K_guess=Kguess
+            S, C, rho, delta, nruns, K_guess=Kguess, maxworkers=1
         )
         
     runtime = time.time() - start
@@ -296,6 +295,15 @@ def generate_rhodelta_map(S, C, rhos, deltas, nruns, filestart=None, maxworkers=
     filestart = 
     maxworkers = max number of CPU cores to use in parallel. If None, will use all available cores.  
     '''
+    if filestart:
+        output_dir = os.path.dirname(filestart)
+    if output_dir:  
+        os.makedirs(output_dir, exist_ok=True)
+        filename = f"{filestart}S{S}_{nruns}rpk.npz"
+        print(f"data will be saved to {filename}")
+    else: print('Data will NOT BE SAVED! ')
+
+
     if maxworkers is None: 
         maxworkers = os.cpu_count()
     nrhos = len(rhos)
@@ -306,6 +314,7 @@ def generate_rhodelta_map(S, C, rhos, deltas, nruns, filestart=None, maxworkers=
     runtimes = np.zeros((nrhos, ndeltas))
 
     print(f"Starting heatmap sweep for S={S}, {nrhos} rhos, {ndeltas} deltas.")
+
     print(f"Using {maxworkers} CPU cores.")
     start_total = time.time()
 
@@ -330,10 +339,6 @@ def generate_rhodelta_map(S, C, rhos, deltas, nruns, filestart=None, maxworkers=
             print(f"[{completed:3d}/{total_tasks}] rho={rho:.2f}, delta={delta:.2e} -> K50={K50:.3f} +- {K50_err:.3f} ({rt:.1f}s)")
 
     if filestart:
-        output_dir = os.path.dirname(filestart)
-        if output_dir:  
-            os.makedirs(output_dir, exist_ok=True)
-        filename = f"{filestart}_S{S}_{nruns}rpk.npz"
         np.savez_compressed(
             filename, deltas=deltas, rhos=rhos, 
             K50s=K50s, K50_errs=K50_errs, runtimes=runtimes, 
