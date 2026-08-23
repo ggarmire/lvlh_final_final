@@ -49,14 +49,26 @@ def main():
     K50_errs = np.zeros(nS)
 
     # get k50 and error for each S
-    for i, S in enumerate(Ss):
+    '''for i, S in enumerate(Ss):
         print(f'on S={S}')
         start = time.time()
         K50, K50_err, _ = lvf.find_K50_threshold_rho_delta(S, C, rho, delta, nruns, K_guess=Kguess, maxworkers=10)
         K50s[i], K50_errs[i] = K50, K50_err
         end = time.time()
         print(f"S={S}, rho={rho}, delta={delta} -> K50 = {K50:.4f}+-{K50_err:.4f}")
-        print(f"    took {(end-start)/60} min ({end-start} sec)")
+        print(f"    took {(end-start)/60} min ({end-start} sec)")'''
+
+    with concurrent.futures.ProcessPoolExecutor(max_workers=40) as executor:
+        for i, S in enumerate(Ss):
+            print(f'on S={S}')
+            start = time.time()
+            K50, K50_err, _ = lvf.find_K50_threshold_rho_delta(
+                S, C, rho, delta, nruns, executor=executor, K_guess=Kguess
+            )
+            K50s[i], K50_errs[i] = K50, K50_err
+            end = time.time()
+            print(f"S={S}, rho={rho}, delta={delta} -> K50 = {K50:.4f}+-{K50_err:.4f}")
+            print(f"    took {(end-start)/60:.2f} min")
 
     # save the data! 
     np.savez_compressed(filename, Ss=Ss, K50s=K50s, K50_errs=K50_errs, delta=delta, rho=rho)

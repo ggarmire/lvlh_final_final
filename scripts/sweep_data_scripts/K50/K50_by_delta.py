@@ -28,9 +28,11 @@ def main():
     L = 2
     nruns = 100
 
-    S = 100
+    S = 1000
 
     Kguess = 2      # guess a K to make it go a bit faster 
+
+    maxworks = 45
 
 
     # save data stuff here: 
@@ -52,7 +54,7 @@ def main():
     K50_errs = np.zeros(nS)
 
     # get k50 and error for each S
-    with concurrent.futures.ProcessPoolExecutor(max_workers=7) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=maxworks) as executor:
         for i, delta in enumerate(deltas):
             print(f'on delta={delta}')
             start = time.time()
