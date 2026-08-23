@@ -26,10 +26,10 @@ def main():
 
     L = 2
     delta = 1000
-    nruns = 100
+    nruns = 500
 
     rho = -1./3.
-    Kguess= 40x
+    Kguess= 54
 
     # save data stuff here: 
     filestart = f'data/K50_data/K50_ofS/delta={delta}/'
@@ -52,7 +52,7 @@ def main():
     for i, S in enumerate(Ss):
         print(f'on S={S}')
         start = time.time()
-        K50, K50_err, _ = lvf.find_K50_threshold_rho_delta(S, C, rho, delta, nruns, K_guess=Kguess, maxworkers=15)
+        K50, K50_err, _ = lvf.find_K50_threshold_rho_delta(S, C, rho, delta, nruns, K_guess=Kguess, maxworkers=10)
         K50s[i], K50_errs[i] = K50, K50_err
         end = time.time()
         print(f"S={S}, rho={rho}, delta={delta} -> K50 = {K50:.4f}+-{K50_err:.4f}")
