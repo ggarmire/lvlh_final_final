@@ -336,7 +336,7 @@ def generate_rhodelta_map(S, C, rhos, deltas, nruns, filestart=None, maxworkers=
             K50_errs[irho, jdelta] = K50_err
             runtimes[irho, jdelta] = rt
             completed += 1
-            print(f"[{completed:3d}/{total_tasks}] rho={rho:.2f}, delta={delta:.2e} -> K50={K50:.3f} +- {K50_err:.3f} ({rt:.1f}s)")
+            print(f"{completed:3d}/{total_tasks} rho={rho:.2f}, delta={delta:.2e} -> K50={K50:.3f} +- {K50_err:.3f} ({rt:.1f}s)")
 
     if filestart:
         np.savez_compressed(
