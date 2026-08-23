@@ -12,24 +12,25 @@ os.environ["NUMEXPR_NUM_THREADS"] = "1"
 import numpy as np
 import matplotlib.pyplot as plt
 import lvlh_functions as lvf
+import concurrent.futures
 
 import time 
 
 def main():
 
-    save_on = True     # flag to save the data at the end. 
-    #save_on = False     # flag to (not( save the data at the end. 
+    #save_on = True     # flag to save the data at the end. 
+    save_on = False     # flag to (not( save the data at the end. 
 
     deltas = [0.01, 0.1, 0.5, 1, 5, 10, 50, 100, 500]
 
     C = 1.0
-    rho = -1./3.
+    rho = 0
     L = 2
     nruns = 100
 
-    S = 1000
+    S = 100
 
-    Kguess = 35      # guess a K to make it go a bit faster 
+    Kguess = 2      # guess a K to make it go a bit faster 
 
 
     # save data stuff here: 
@@ -51,14 +52,21 @@ def main():
     K50_errs = np.zeros(nS)
 
     # get k50 and error for each S
-    for i, delta in enumerate(deltas):
-        print(f'on delta={delta}')
-        start = time.time()
-        K50, K50_err, _ = lvf.find_K50_threshold_rho_delta(S, C, rho, delta, nruns, K_guess=Kguess, maxworkers=40)
-        K50s[i], K50_errs[i] = K50, K50_err
-        end = time.time()
-        print(f"delta={delta}, rho={rho}, delta={delta} -> K50 = {K50:.4f}+-{K50_err:.4f}")
-        print(f"    took {(end-start)/60} min ({end-start} sec)")
+    with concurrent.futures.ProcessPoolExecutor(max_workers=7) as executor:
+        for i, delta in enumerate(deltas):
+            print(f'on delta={delta}')
+            start = time.time()
+            K50, K50_err, _ = lvf.find_K50_threshold_rho_delta(
+                S, C, rho, delta, nruns, executor=executor, K_guess=Kguess
+            )
+            '''for i, delta in enumerate(deltas):
+            print(f'on delta={delta}')
+            start = time.time()
+            K50, K50_err, _ = lvf.find_K50_threshold_rho_delta(S, C, rho, delta, nruns, K_guess=Kguess, maxworkers=40)'''
+            K50s[i], K50_errs[i] = K50, K50_err
+            end = time.time()
+            print(f"delta={delta}, rho={rho}, delta={delta} -> K50 = {K50:.4f}+-{K50_err:.4f}")
+            print(f"    took {(end-start)/60} min ({end-start} sec)")
 
     # save the data! 
     np.savez_compressed(filename, deltas=deltas, K50s=K50s, K50_errs=K50_errs, S=S, rho=rho)
