@@ -18,8 +18,8 @@ import time
 
 def main():
 
-    #save_on = True     # flag to save the data at the end. 
-    save_on = False     # flag to save the data at the end. 
+    save_on = True     # flag to save the data at the end. 
+    #save_on = False     # flag to save the data at the end. 
 
     Ss = [1000, 500, 200, 100, 50, 25, 10]
     #Ss = [100, 50, 25, 10]
@@ -30,7 +30,7 @@ def main():
     nruns = 100
 
     Kguess= 1
-    mw = 80
+    mw = 10
 
     # save data stuff here: 
     filestart = f'data/K50_data/K50_ofS/delta={delta}/'
