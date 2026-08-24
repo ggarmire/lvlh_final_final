@@ -12,15 +12,17 @@ os.environ["NUMEXPR_NUM_THREADS"] = "1"
 import numpy as np
 import matplotlib.pyplot as plt
 import lvlh_functions as lvf
+import concurrent.futures
 
 import time 
 
 def main():
 
-    save_on = True     # flag to save the data at the end. 
-    #save_on = False     # flag to save the data at the end. 
+    #save_on = True     # flag to save the data at the end. 
+    save_on = False     # flag to save the data at the end. 
 
     Ss = [1000, 500, 200, 100, 50, 25, 10]
+    #Ss = [100, 50, 25, 10]
     C = 1.0
 
     L = 2
@@ -28,6 +30,7 @@ def main():
     nruns = 100
 
     Kguess= 1
+    mw = 80
 
     # save data stuff here: 
     filestart = f'data/K50_data/K50_ofS/delta={delta}/'
@@ -47,7 +50,7 @@ def main():
     K50_errs = np.zeros(nS)
 
     # get k50 and error for each S
-    for i, S in enumerate(Ss):
+    '''for i, S in enumerate(Ss):
         print(f'on S={S}')
         start = time.time()
         K50, K50_err, _ = lvf.find_K50_threshold_Bind_delta(S, C, delta, nruns, K_guess=Kguess, maxworkers=80)
@@ -55,6 +58,18 @@ def main():
         end = time.time()
         print(f"S={S} delta={delta} -> K50 = {K50:.4f}+-{K50_err:.4f}")
         print(f"    took {(end-start)/60} min ({end-start} sec)")
+'''
+    with concurrent.futures.ProcessPoolExecutor(max_workers=mw) as executor:
+        for i, S in enumerate(Ss):
+            print(f'on S={S}')
+            start = time.time()
+            K50, K50_err, _ = lvf.find_K50_threshold_Bind_delta(
+                S, C, delta, nruns, executor=executor, K_guess=Kguess
+            )
+            K50s[i], K50_errs[i] = K50, K50_err
+            end = time.time()
+            print(f"S={S}, delta={delta} -> K50 = {K50:.4f}+-{K50_err:.4f}")
+            print(f"    took {(end-start)/60:.2f} min")
 
     # save the data! 
     np.savez_compressed(filename, Ss=Ss, K50s=K50s, K50_errs=K50_errs, delta=delta)
@@ -66,7 +81,7 @@ def main():
     plt.errorbar(Ss, K50s, xerr=K50_err, ms=10, lw=2, capsize=5)
     plt.xlabel('number of species S')
     plt.ylabel('K for which 50% of runs are stable')
-    plt.title(f'K50(S), delta={delta}, rho={rho}, nruns={nruns}')
+    plt.title(f'K50(S), delta={delta}, Bind, nruns={nruns}')
 
     plt.show()
     

@@ -204,7 +204,7 @@ def _worker_stable_check_Bind(task_args):
     # return true/false for stable 
     return lvf.check_stable(B, R)
 
-def evaluate_oneK_stablefrac_Bind(K, S, C,  delta, nruns, maxworkers):
+'''def evaluate_oneK_stablefrac_Bind(K, S, C,  delta, nruns, maxworkers):
     # set up nruns tasks: find stable/unstable for each run
     tasks = [(S, C, K, delta, seed) for seed in range(nruns)]
     if nruns < 200: chunksize = 2
@@ -216,9 +216,17 @@ def evaluate_oneK_stablefrac_Bind(K, S, C,  delta, nruns, maxworkers):
     stable_count = sum(stables)
     stable_frac = stable_count / nruns
     # need to return stables for bootstrapping later 
-    return stable_frac, stables  
+    return stable_frac, stables  '''
 
-def find_K50_threshold_Bind_delta(S, C, delta, nruns, K_guess=1, stepsize = 0.4, maxworkers=None):
+def evaluate_oneK_stablefrac_Bind(K, S, C, delta, nruns, executor):
+    tasks = [(S, C, K, delta, seed) for seed in range(nruns)]
+    chunksize = 2 if nruns < 200 else 5
+    stables = list(executor.map(_worker_stable_check_Bind, tasks, chunksize=chunksize))
+    stable_count = sum(stables)
+    return stable_count / nruns, stables
+
+#def find_K50_threshold_Bind_delta(S, C, delta, nruns, K_guess=1, stepsize = 0.4, maxworkers=None):
+def find_K50_threshold_Bind_delta(S, C, delta, nruns, executor, K_guess=1, stepsize=0.4):
     K_history = {}      # to store tested values of K
     def get_f(K):
         '''
@@ -226,7 +234,8 @@ def find_K50_threshold_Bind_delta(S, C, delta, nruns, K_guess=1, stepsize = 0.4,
         '''
         K_round = round(K,4)
         if K_round not in K_history: 
-            K_history[K_round] = evaluate_oneK_stablefrac_Bind(K, S, C, delta, nruns, maxworkers)
+            #K_history[K_round] = evaluate_oneK_stablefrac_Bind(K, S, C, delta, nruns, maxworkers)
+            K_history[K_round] = evaluate_oneK_stablefrac_Bind(K, S, C, delta, nruns, executor)
             print(f'K={K_round} has {K_history[K_round][0]*100}% runs stable. \r')
         f = K_history[K_round][0]
         return f
