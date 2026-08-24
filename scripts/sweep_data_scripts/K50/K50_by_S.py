@@ -12,6 +12,7 @@ os.environ["NUMEXPR_NUM_THREADS"] = "1"
 import numpy as np
 import matplotlib.pyplot as plt
 import lvlh_functions as lvf
+import concurrent.futures
 
 import time 
 
@@ -26,10 +27,12 @@ def main():
 
     L = 2
     delta = 1000
-    nruns = 500
+    nruns = 200
 
-    rho = -1./3.
-    Kguess= 54
+    rho = 1
+    Kguess= 1
+
+    mw = 20
 
     # save data stuff here: 
     filestart = f'data/K50_data/K50_ofS/delta={delta}/'
@@ -58,7 +61,7 @@ def main():
         print(f"S={S}, rho={rho}, delta={delta} -> K50 = {K50:.4f}+-{K50_err:.4f}")
         print(f"    took {(end-start)/60} min ({end-start} sec)")'''
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=40) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=mw) as executor:
         for i, S in enumerate(Ss):
             print(f'on S={S}')
             start = time.time()
