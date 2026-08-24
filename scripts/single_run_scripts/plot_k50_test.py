@@ -14,7 +14,8 @@ def K50_asym_fit(x, y0, A, B):
 
 
 def main():
-    rhos = [-1./3., 0, 0.5, 1]
+    #rhos = [-1./3., 0, 0.5, 1]
+    rhos = [0, 1]
     asym_lines = [2, 2/((2.5)**0.5), 1]
 
     rhocols = ['tab:blue', 'tab:green', 'tab:orange', 'tab:red']
@@ -47,7 +48,7 @@ def main():
     data_Kofdelta = {}
     k50delta_dir = os.path.join(current_dir, '..', '..', 'data', 'K50_data', 'K50_ofdelta', f'S={high_S}')
     for irho, rho in enumerate(rhos):
-            filepath = os.path.join(k50delta_dir, f'K50bydelta_rho{rho:.2f}_delta0.01-1000.0_100rpk.npz')
+            filepath = os.path.join(k50delta_dir, f'K50bydelta_rho{rho:.2f}_delta0.01-500.0_100rpk.npz')
             with np.load(filepath) as data: 
                 data_Kofdelta[rho] = {'K50s': data['K50s'], 'K50_errs': data['K50_errs'], 'deltas': data['deltas']}
 
