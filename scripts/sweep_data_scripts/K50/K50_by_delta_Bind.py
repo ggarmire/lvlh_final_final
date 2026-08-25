@@ -20,7 +20,8 @@ def main():
     save_on = True     # flag to save the data at the end. 
     #save_on = False     # flag to save the data at the end. 
 
-    deltas = [0.01, 0.1, 1, 10, 100, 1000]
+    #deltas = [0.01, 0.1, 1, 10, 100, 1000]
+    deltas = [0.01, 0.1, 0.5, 1, 5, 10, 50, 100, 500]
     C = 1.0
     L = 2
     nruns = 100
@@ -52,7 +53,7 @@ def main():
         print(f'on delta={delta}')
         start = time.time()
         #K50, K50_err, _ = lvf.find_K50_threshold_rho_delta(S, C, rho, delta, nruns, K_guess=Kguess)
-        K50, K50_err, _ = lvf.find_K50_threshold_Bind_delta(S, C, delta, nruns, K_guess=Kguess, maxworkers=40)
+        K50, K50_err, _ = lvf.find_K50_threshold_Bind_delta(S, C, delta, nruns, K_guess=Kguess, maxworkers=55)
         K50s[i], K50_errs[i] = K50, K50_err
         end = time.time()
         print(f"delta={delta}, delta={delta} -> K50 = {K50:.4f}+-{K50_err:.4f}")
