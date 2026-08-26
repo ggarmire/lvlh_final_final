@@ -39,7 +39,7 @@ def main():
             with np.load(filepath) as data: 
                 data_Kofdelta[rho] = {'K50s': data['K50s'], 'K50_errs': data['K50_errs'], 'deltas': data['deltas']}
 
-    filepath_ind = os.path.join(k50delta_dir, f'K50bydelta_Bind_delta0.01-1000.0_100rpk.npz')
+    filepath_ind = os.path.join(k50delta_dir, f'K50bydelta_Bind_delta0.01-500.0_100rpk.npz')
     with np.load(filepath_ind) as data: 
         data_Kofdelta['ind'] = {'K50s': data['K50s'], 'K50_errs': data['K50_errs'], 'deltas': data['deltas']}
 
@@ -57,7 +57,7 @@ def main():
 
     # plot setup 
     fig = plt.figure(figsize=(18, 9))
-    gs = gridspec.GridSpec(2, 2, width_ratios=[1, 1], hspace=0.35)
+    gs = gridspec.GridSpec(2, 2, width_ratios=[1, 1], height_ratios=[1.2, 1], hspace=0.35)
 
     y_break = ((0, 5), (45, 55))
     ax1 = brokenaxes(ylims=y_break, subplot_spec=gs[0, 0], fig=fig, hspace=0.2, d=0.0045, tilt=20, despine=False)
@@ -109,11 +109,13 @@ def main():
             fancybox=False, 
             framealpha=0.3, 
             edgecolor='white')
-    ax2.set_xlim((-0.1, 1300))
+    ax2.set_xlim((-0.1, 700))
     ax2.set_ylim((0, 55))
-    ax2.set_xscale('symlog')
-    ax2.set_yscale('symlog')
-    ax2.grid(True, alpha=0.3)
+    ax2.set_xscale('symlog', subs=[5])
+    ax2.set_yscale('symlog', subs=[5])
+    #ax2.grid(True, alpha=0.3)
+    ax2.grid(True, which='both', alpha=0.3)
+    #ax2.grid(True, which='major', axis='x', alpha=0.3)
 
 
 
