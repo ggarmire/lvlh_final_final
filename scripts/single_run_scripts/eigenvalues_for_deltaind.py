@@ -12,20 +12,19 @@ def main():
     print(f'seed={seed}')
 
     S = 250
-    rho = 0
 
     delta = 1000
-    nruns = 50
+
 
 
     C = 1
 
-    Kset = 1
+    Kset = 0.8
 
     sigma = Kset * (S*C)**(-0.5)
     K = sigma * (S*C)**0.5
 
-    B = lvf.B_rho(S, C, sigma, seed, L=2, rho=rho)
+    B = lvf.B_ind(S, C, sigma, L=2, seed=seed)
     R = lvf.R_star_2stage_delta(B, delta)
     Jac = lvf.Jacobian(B, R)
     Jeigs = np.linalg.eigvals(Jac)
@@ -54,7 +53,7 @@ def main():
 
  
 
-    print(f"S={S}, rho={rho}, delta={delta}, K={K}")
+    print(f"S={S},  delta={delta}, K={K}")
 
     fig, (ax1, ax2) = plt.subplots(1, 2, sharey=True, figsize=(14, 8))
     colors = np.where(np.real(Jeigs) > 0, 'red', 'green')
