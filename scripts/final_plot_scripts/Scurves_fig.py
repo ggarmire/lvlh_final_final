@@ -11,7 +11,8 @@ def onerun_eigs_rho(rho, S, C, Bseed, delta):
     '''
     K = 2 * (1+3*rho)**(-0.5)
     sigma = K* (S*C)**(-0.5)      #C=1 here 
-    B = lvf.B_rho(S, C, sigma, Bseed, L=2, rho=0)
+    L = 2
+    B = lvf.B_rho(S, C, sigma, Bseed, L, rho)
     R = lvf.R_star_2stage_delta(B, delta)
     Jac = lvf.Jacobian(B, R)
     Jeigs = np.linalg.eigvals(Jac)
@@ -39,7 +40,7 @@ def S_curve_panel(ax, Ks_onestage, fracs_onestage, frac_errs_onestage, K50_onest
                 Ks_list, fracs_list, frac_errs_list, K50_list, K50_err_list, 
                 K50_threshold, xlims, legend_title, first_panel=False):
     S_cols = ['lightskyblue', 'dodgerblue', 'blue']
-    labels = ['S=1000', 'S=100', 'S=25']
+    labels = [ 'S=25', 'S=100','S=1000']
     Scol1 = 'grey'
     ax.fill_between(Ks_onestage, fracs_onestage-frac_errs_onestage, fracs_onestage+frac_errs_onestage, alpha=0.3, color=Scol1)
     ax.plot(Ks_onestage, fracs_onestage, '-', alpha=0.5, lw = 5, color=Scol1, label='one stage')
@@ -62,10 +63,13 @@ def S_curve_panel(ax, Ks_onestage, fracs_onestage, frac_errs_onestage, K50_onest
     
 
     handles, labels = ax.get_legend_handles_labels()
+    order = [0, 1, 4, 3, 2]
     if first_panel:
         leg = ax.legend(
-            handles, 
-            labels, 
+            [handles[idx] for idx in order], 
+            [labels[idx] for idx in order], 
+            #handles, 
+            #labels, 
             title=legend_title, 
             title_fontproperties={'size':11}, 
             fontsize=9,
@@ -78,8 +82,6 @@ def S_curve_panel(ax, Ks_onestage, fracs_onestage, frac_errs_onestage, K50_onest
         ax.set_ylabel(r'fraction of runs stable for given $K$', fontsize=10)    
     else:
         leg = ax.legend(
-            #[handles[idx] for idx in order], 
-            #[labels[idx] for idx in order], 
             [],
             [],
             title=legend_title, 
@@ -171,6 +173,7 @@ def main():
     Scol1 = 'grey'
     axfontsize = 10
 
+
     fig = plt.figure(figsize=(15, 10))
     gs = gridspec.GridSpec(2, 3, height_ratios=[6,2.5], width_ratios=[2, 2, 2], hspace=0.3, wspace=0.3)
     s1 = fig.add_subplot(gs[0, 0])
@@ -178,12 +181,12 @@ def main():
     sind = fig.add_subplot(gs[0, 2])
 
     # for broken axis: 
-    xlims_broken1 = ((-2010, -1998), (-6, 2))
+    xlims_broken1 = ((-2017, -1998), (-6, 2))
     xlims_broken0 = ((-2015, -1998), (-6, 2))
     xlims_brokenind = ((-2010, -1998), (-6, 2))
-    eig1 = brokenaxes(xlims=xlims_broken1, subplot_spec=gs[1, 0], fig=fig, wspace=0.1, d=0.0045, tilt=70)
-    eig0 = brokenaxes(xlims=xlims_broken0, subplot_spec=gs[1, 1], fig=fig,  wspace=0.1, d=0.0045, tilt=70)
-    eigind = brokenaxes(xlims=xlims_brokenind, subplot_spec=gs[1, 2], fig=fig,  wspace=0.1, d=0.0045, tilt=70)
+    eig1 = brokenaxes(xlims=xlims_broken1, subplot_spec=gs[1, 0], fig=fig, wspace=0.06, d=0.005, tilt=70)
+    eig0 = brokenaxes(xlims=xlims_broken0, subplot_spec=gs[1, 1], fig=fig,  wspace=0.06, d=0.005, tilt=70)
+    eigind = brokenaxes(xlims=xlims_brokenind, subplot_spec=gs[1, 2], fig=fig,  wspace=0.06, d=0.005, tilt=70)
 
 
     # S curve plots 

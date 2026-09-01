@@ -25,6 +25,7 @@ def evolve_system(B, R, x0, ts):
     return sol
 
 
+
 # Jacobian 
 def Jacobian(B, R):
     '''
