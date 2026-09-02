@@ -30,7 +30,7 @@ def _worker_CK_point(args):
     return i_C, j_K, stable_count / nruns
 
 def main():
-    S = 100
+    S = 10
     rho = 0.0
     delta = 1000
     nruns = 200
@@ -60,7 +60,7 @@ def main():
     
     # Save the data
     os.makedirs('data', exist_ok=True)
-    filename = f"data/CK_heatmap_S{S}_rho{rho}_{nruns}rpk.npz"
+    filename = f"data/C_data/CK_heatmap_S{S}_rho{rho}_{nruns}rpk.npz"
     np.savez_compressed(filename, Cs=Cs, Ks=Ks, stable_fracs=stable_fracs, S=S, rho=rho, delta=delta)
     print(f"Data saved to {filename}")
 
