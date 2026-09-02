@@ -12,6 +12,7 @@ os.environ["NUMEXPR_NUM_THREADS"] = "1"
 import numpy as np
 import matplotlib.pyplot as plt
 import lvlh_functions as lvf
+import concurrent.futures
 
 import time 
 
@@ -30,6 +31,7 @@ def main():
 
     Kguess = 1      # guess a K to make it go a bit faster 
 
+    maxworks = 55
 
     # save data stuff here: 
     filestart = f'data/K50_data/K50_ofdelta/S={S}/'
@@ -49,20 +51,28 @@ def main():
     K50_errs = np.zeros(nS)
 
     # get k50 and error for each S
-    for i, delta in enumerate(deltas):
-        print(f'on delta={delta}')
-        start = time.time()
-        #K50, K50_err, _ = lvf.find_K50_threshold_rho_delta(S, C, rho, delta, nruns, K_guess=Kguess)
-        K50, K50_err, _ = lvf.find_K50_threshold_Bind_delta(S, C, delta, nruns, K_guess=Kguess, maxworkers=55)
-        K50s[i], K50_errs[i] = K50, K50_err
-        end = time.time()
-        print(f"delta={delta}, delta={delta} -> K50 = {K50:.4f}+-{K50_err:.4f}")
-        print(f"    took {(end-start)/60} min ({end-start} sec)")
+
+
+    with concurrent.futures.ProcessPoolExecutor(max_workers=maxworks) as executor:
+        for i, delta in enumerate(deltas):
+            print(f'on delta={delta}')
+            start = time.time()
+            K50, K50_err, _ = lvf.find_K50_threshold_Bind_delta(
+                S, C, delta, nruns, executor=executor, K_guess=Kguess
+            )
+            K50s[i], K50_errs[i] = K50, K50_err
+            end = time.time()
+            print(f"delta={delta} -> K50 = {K50:.4f}+-{K50_err:.4f}")
+            print(f"    took {(end-start)/60} min ({end-start} sec)")
 
     # save the data! 
     np.savez_compressed(filename, deltas=deltas, K50s=K50s, K50_errs=K50_errs, S=S)
     print(f"\nData saved successfully to: {filename}")
-    print(f'S={Ss}\n K50s={K50s}\n Kerr={K50_err}')
+    
+    print(f'deltas \n{deltas}')
+    print(f'K50s \n{K50s}')
+    print(f'K50errss \n{K50_errs}')
+    
     # plot to see 
     plt.figure(figsize=(8,6))
     plt.errorbar(deltas, K50s, xerr=K50_err, fmt='o--', ms=10, lw=2, capsize=5)
