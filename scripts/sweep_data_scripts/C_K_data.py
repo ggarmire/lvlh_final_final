@@ -1,6 +1,5 @@
 import os
 
-import os
 
 os.environ["OMP_NUM_THREADS"] = "1"
 os.environ["OPENBLAS_NUM_THREADS"] = "1"
@@ -30,11 +29,11 @@ def _worker_CK_point(args):
     return i_C, j_K, stable_count / nruns
 
 def main():
-    S = 10
+    S = 100
     rho = 0.0
     delta = 1000
     nruns = 200
-    mw = 20
+    mw = 80
     
     Cs = np.linspace(0.1, 1.0, 10)  
     Ks = np.linspace(1, 3, 21) 
@@ -55,6 +54,7 @@ def main():
         results = executor.map(_worker_CK_point, tasks)
         for i_C, j_K, frac in results:
             stable_fracs[i_C, j_K] = frac
+            print(frac)
             
     print(f"Sweep completed in {(time.time() - start)/60:.2f} minutes.")
     
