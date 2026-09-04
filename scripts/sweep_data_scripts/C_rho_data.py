@@ -12,14 +12,14 @@ import concurrent.futures
 import lvlh_functions as lvf
 
 def main():
-    S = 100
+    S = 500
     delta = 1000
     nruns = 200
-    mw = 80
+    mw = 76
     
-    Cs = np.linspace(0.1, 1.0, 10)
+    Cs = np.linspace(0.2, 1.0, 5)
     #Cs = np.linspace(0.1, 1.0, 2)
-    rhos = np.linspace(-0.3, 1.0, 14)
+    rhos = np.linspace(-0.2, 1.0, 7)
     #rhos = np.linspace(0, 1.0, 9)
     #rhos = np.linspace(0, 1.0, 2)
     
@@ -32,7 +32,7 @@ def main():
     with concurrent.futures.ProcessPoolExecutor(max_workers=mw) as executor:
         for i, C in enumerate(Cs):
             for j, rho in enumerate(rhos):
-                if rho > -0.2:
+                if rho > -0.3:
                     K_guess = round(2 * (1 + 3 * rho)**(-0.5), 2)
                 else: K_guess = 40
                 
