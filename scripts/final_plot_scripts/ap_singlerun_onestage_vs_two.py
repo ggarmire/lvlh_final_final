@@ -17,7 +17,7 @@ def generate_system(stages, K, S, C, seed, delta=1000):
 def main(): 
     S = 100
     C = 1
-    delta = 2
+    delta = 1000
     ts = np.linspace(0, 100, 1000)
 
     configs = [
