@@ -13,7 +13,7 @@ import lvlh_functions as lvf
 
 def main():
     # Sweep Parameters
-    S = 1000
+    S = 100
     C = 0.1
     L = 2
     delta = 1000

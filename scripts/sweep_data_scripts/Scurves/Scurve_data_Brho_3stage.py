@@ -13,28 +13,26 @@ import lvlh_functions as lvf
 
 def main():
     # Sweep Parameters
-    S = 100
-    C = 1
-    rho = 0
-    L = 2
+    S = 25
+    C = 1.0
+    rho = 1
+    L = 3
     delta = 1000
 
-    nruns = 200
-    Ks = np.linspace(1.5, 2.5, 20)
+    nruns = 500
+    Ks = np.linspace(0, 2, 50)
 
     # arguments for B and R: 
     extra_args = {'L': L, 'rho': rho} 
     R_args = {'delta': delta}
 
-    print(f'C={C}')
-
-    filestart = f'data/C_data/S_curves/Brho{rho:0.2f}_C{C}'
+    filestart = f'data/S_curves/3stage/B_rho/B_L3_rho__{rho:0.2f}'
     output_dir = os.path.dirname(filestart)
     if output_dir:  
         os.makedirs(output_dir, exist_ok=True)
     
     # Execute the parallel sweep
-    fracs, frac_errs = lvf.sweeps.generate_S_curve(
+    fracs, frac_errs = lvf.sweeps.generate_S_curve_3stage(
         matrix_function = lvf.B_rho, 
         S = S, 
         C = C, 

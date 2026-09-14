@@ -66,6 +66,7 @@ def B_rho(S, C, sigma, seed, L, rho):
                     B[block_row, block_col] = x.reshape(L,L)
     return B
 
+
 def B_ind(S, C, sigma, L, seed):
     '''
     Generate interaction matrix for system with S species, L stages, uncorrelated intra-species inter-stage interactions.
@@ -124,3 +125,50 @@ def R_star_2stage_delta(B, delta):
     R[odds, odds] = muas
 
     return R
+
+def R_star_3stage_delta(B, delta): 
+    '''
+    this generates the R matrix for 3 stage system with x*=1. 
+    B = interaction matrix (LSxLS)
+    rseed sets random number generation 
+    delta is the minimum value of any phi, gamma, or -mu. 
+    '''
+    S = int(B.shape[0]/3)
+    One = np.ones(B.shape[0])
+    B_rs = np.dot(B, One)
+    deltas = np.full(S, delta)
+
+    # indices of each stage 
+    idx_stage1 = np.arange(0, 3 * S, 3)
+    idx_stage2 = np.arange(1, 3 * S, 3)
+    idx_stage3 = np.arange(2, 3 * S, 3)
+
+    # stage 1:
+    fmins = np.maximum(0, -B_rs[idx_stage1])
+    phis = fmins + deltas
+    mu1s = -B_rs[idx_stage1] - phis
+
+    # stage 2
+    g1mins = np.maximum(0, -B_rs[idx_stage2])
+    gamma1s = g1mins + deltas
+    mu2s = -B_rs[idx_stage2] - gamma1s
+
+    # stage 3
+    g2mins = np.maximum(0, -B_rs[idx_stage3])
+    gamma2s = g2mins + deltas
+    mu3s = -B_rs[idx_stage3] - gamma2s 
+
+    # make R
+    R = np.zeros(B.shape)
+    R[idx_stage1, idx_stage1] = mu1s
+    R[idx_stage2, idx_stage2] = mu2s
+    R[idx_stage3, idx_stage3] = mu3s
+
+    R[idx_stage1, idx_stage3] = phis     
+    R[idx_stage2, idx_stage1] = gamma1s 
+    R[idx_stage3, idx_stage2] = gamma2s  
+
+    return R
+
+
+

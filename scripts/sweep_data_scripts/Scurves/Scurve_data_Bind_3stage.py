@@ -13,29 +13,26 @@ import lvlh_functions as lvf
 
 def main():
     # Sweep Parameters
-    S = 100
-    C = 1
-    rho = 0
-    L = 2
+    S = 1000
+    C = 1.0
+    L = 3
     delta = 1000
 
-    nruns = 200
-    Ks = np.linspace(1.5, 2.5, 20)
+    nruns = 500
+    Ks = np.linspace(0, 4, 50)
 
     # arguments for B and R: 
-    extra_args = {'L': L, 'rho': rho} 
+    extra_args = {'L': L} 
     R_args = {'delta': delta}
 
-    print(f'C={C}')
-
-    filestart = f'data/C_data/S_curves/Brho{rho:0.2f}_C{C}'
+    filestart = f'data/S_curves/3stage/B_ind/B_L3_ind'
     output_dir = os.path.dirname(filestart)
     if output_dir:  
         os.makedirs(output_dir, exist_ok=True)
     
     # Execute the parallel sweep
-    fracs, frac_errs = lvf.sweeps.generate_S_curve(
-        matrix_function = lvf.B_rho, 
+    fracs, frac_errs = lvf.sweeps.generate_S_curve_3stage(
+        matrix_function = lvf.B_ind, 
         S = S, 
         C = C, 
         B_args = extra_args, 
@@ -43,11 +40,11 @@ def main():
         nruns = nruns, 
         filestart = filestart,
         R_args=R_args,
-        maxworkers = None
+        maxworkers = 25
     )
     plt.fill_between(Ks, fracs-frac_errs, fracs+frac_errs, color='green', alpha = 0.3)
     plt.plot(Ks, fracs, '.-', color='black', lw = 1)
-    plt.title(f'Stability by K, {S} species, 2 stages, rho = {rho}')
+    plt.title(f'Stability by K, {S} species, 3 stages)
     plt.grid()
     plt.xlabel('K')
     plt.ylabel('fraction of runs stable')
