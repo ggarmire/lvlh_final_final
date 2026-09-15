@@ -171,4 +171,56 @@ def R_star_3stage_delta(B, delta):
     return R
 
 
+def R_star_4stage_delta(B, delta): 
+    '''
+    this generates the R matrix for 3 stage system with x*=1. 
+    B = interaction matrix (LSxLS)
+    rseed sets random number generation 
+    delta is the minimum value of any phi, gamma, or -mu. 
+    '''
+    S = int(B.shape[0]/4)
+    One = np.ones(B.shape[0])
+    B_rs = np.dot(B, One)
+    deltas = np.full(S, delta)
+
+    # indices of each stage 
+    idx_stage1 = np.arange(0, 4 * S, 4)
+    idx_stage2 = np.arange(1, 4 * S, 4)
+    idx_stage3 = np.arange(2, 4 * S, 4)
+    idx_stage4 = np.arange(3, 4 * S, 4)
+
+    # stage 1:
+    fmins = np.maximum(0, -B_rs[idx_stage1])
+    phis = fmins + deltas
+    mu1s = -B_rs[idx_stage1] - phis
+
+    # stage 2
+    g1mins = np.maximum(0, -B_rs[idx_stage2])
+    gamma1s = g1mins + deltas
+    mu2s = -B_rs[idx_stage2] - gamma1s
+
+    # stage 3
+    g2mins = np.maximum(0, -B_rs[idx_stage3])
+    gamma2s = g2mins + deltas
+    mu3s = -B_rs[idx_stage3] - gamma2s 
+
+    # stage 4
+    g3mins = np.maximum(0, -B_rs[idx_stage4])
+    gamma3s = g3mins + deltas
+    mu4s = -B_rs[idx_stage4] - gamma3s 
+
+    # make R
+    R = np.zeros(B.shape)
+    R[idx_stage1, idx_stage1] = mu1s
+    R[idx_stage2, idx_stage2] = mu2s
+    R[idx_stage3, idx_stage3] = mu3s
+    R[idx_stage4, idx_stage4] = mu4s
+
+    R[idx_stage1, idx_stage4] = phis     
+    R[idx_stage2, idx_stage1] = gamma1s 
+    R[idx_stage3, idx_stage2] = gamma2s  
+    R[idx_stage4, idx_stage3] = gamma3s
+
+    return R
+
 

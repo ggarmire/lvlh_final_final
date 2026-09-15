@@ -177,6 +177,89 @@ def generate_S_curve_3stage(matrix_function, S, C, B_args, Ks, nruns, filestart,
     return fracs, frac_errs
 
 
+def _run_sweep_task_4stage(task_args):
+    '''
+    runs one task for the sweep below. Returns stability status of the task. 
+    '''
+    matrix_function, S, C, K, seed, B_args, R_args = task_args
+    sigma = K * (S*C)**(-0.5)
+    B = matrix_function(S=S, C=C, sigma=sigma, seed=seed, **B_args)
+    if matrix_function is lvf.A_onestage: R = lvf.r_star(B)
+    else: R = lvf.R_star_4stage_delta(B, **(R_args or {}))
+    return lvf.check_stable(B, R)
+
+def generate_S_curve_4stage(matrix_function, S, C, B_args, Ks, nruns, filestart, R_args=None, maxworkers=None):
+    '''
+    Find the fraction of runs stable for each K in Ks.
+    maxtrix_function = function used to generate the interaction matrix 
+    S = number of species 
+    C = connectance 
+    B_args = additional args needed depending on the type of interaction matrix 
+    Ks = array of K values at which to calculate the fraction of runs stable 
+    nruns = number of runs tried at each K 
+    filestart = 
+    R_args = any necessary arguments for the demographic matrix (namely delta)
+    maxworkers = max number of CPU cores to use in parallel. If None, will use all available cores.  
+    '''
+    if maxworkers == None: maxworkers = os.cpu_count()
+    
+    nKs = len(Ks)
+    fracs = np.zeros(nKs)
+    frac_errs = np.zeros(nKs)
+    start = time.time()
+    print(f"Starting sweep for {S} species, {nKs} Ks, {nruns} runs per K\nKmin = {np.min(Ks)}, Kmax = {np.max(Ks)}")
+    print(f"using {maxworkers} CPU cores.")
+
+    # set up tasks to run in parallel:
+    tasks = []
+    for i, K in enumerate(Ks): 
+        for run in range(nruns):
+            seed = run
+            task_args = (matrix_function, S, C, K, seed, B_args, R_args)
+            tasks.append((i, task_args))
+
+    stable_outcomes = {i: [] for i in range(len(Ks))}
+    total_tasks = len(tasks)
+    completed = 0
+
+    # run tasks parallel: 
+    with concurrent.futures.ProcessPoolExecutor(max_workers=maxworkers) as executor:
+        results = executor.map(_run_sweep_task_4stage, [t[1] for t in tasks], chunksize = 10)
+        for (i, _), is_stable in zip(tasks, results):
+            stable_outcomes[i].append(int(is_stable))
+            completed += 1
+            if completed == 0 or (completed % 10 == 0) or completed == total_tasks: 
+                print(f"{completed}/{total_tasks} cases done ({(completed/total_tasks)*100:.1f}%)", end='\r')
+
+    for i, K in enumerate(Ks):
+        fracs[i] = np.mean(np.array(stable_outcomes[i]))
+        frac_errs[i] = lvf.bootstrap_error(stable_outcomes[i], nboots=1000, seed=i)
+        print(f"  K = {K:.2f}, fraction stable = {fracs[i]:.3f}+-{frac_errs[i]:.3f}")
+    end = time.time()
+    print(f'took {(end-start)/60} min, {(end-start)/total_tasks} sec per task.')
+
+    # get K50 
+    for idx in range(len(fracs) - 1):
+        f1, f2 = fracs[idx], fracs[idx+1]
+        if (f1 >= 0.5 >= f2) or (f1 <= 0.5 <= f2):
+            f_low = f1; f_high =f2
+            K_low = Ks[idx]; K_high = Ks[idx+1]
+            idx_low = idx
+            K50 = K_high - (K_high-K_low)/(f_high-f_low)*(f_high-0.5)
+
+    # get K50 error 
+    K50_stderr = lvf.bootstrap_interp_error(K_low, K_high, stable_outcomes[idx_low], stable_outcomes[idx_low+1])
+
+
+
+    filename = f"{filestart}_S{S}_{nruns}rpk.npz"
+    #np.savez_compressed(filename, Ks=Ks, fracs=fracs, frac_errs = frac_errs, S=S)
+    np.savez_compressed(filename, Ks=Ks, fracs=fracs, frac_errs = frac_errs, K50=K50, K50_err = K50_stderr, S=S)
+    print(f"\nData ( Ks, fracs, frac_errs, K50, K50_err, S) saved successfully to: {filename}")
+
+    return fracs, frac_errs
+
+
 # find 50% stable K threshold
 
 def _worker_stable_check(task_args):

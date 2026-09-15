@@ -11,9 +11,9 @@ def onerun_eigs_rho(rho, S, C, Bseed, delta):
     '''
     K = 2 * (1+3*rho)**(-0.5)
     sigma = K* (S*C)**(-0.5)      #C=1 here 
-    L = 2
+    L = 3
     B = lvf.B_rho(S, C, sigma, Bseed, L, rho)
-    R = lvf.R_star_2stage_delta(B, delta)
+    R = lvf.R_star_3stage_delta(B, delta)
     Jac = lvf.Jacobian(B, R)
     Jeigs = np.linalg.eigvals(Jac)
     return Jeigs 
@@ -23,16 +23,15 @@ def onerun_eigs_Bind(K, S, C, Bseed, delta):
     get the eigenvalues for 1 run with C1, Bind; to then plot
     '''
     sigma = K* (S*C)**(-0.5)      #C=1 here 
-    B = lvf.B_ind(S, C, sigma, L=2, seed=Bseed)
-    R = lvf.R_star_2stage_delta(B, delta)
+    B = lvf.B_ind(S, C, sigma, L=3, seed=Bseed)
+    R = lvf.R_star_3stage_delta(B, delta)
     Jac = lvf.Jacobian(B, R)
     Jeigs = np.linalg.eigvals(Jac)
     return Jeigs 
-    
 
 def get_Scurve_data(dir, filename):
     data = np.load(os.path.join(dir, filename))
-    Ks, fracs, frac_errs = lvf.pad_S_curve(data['Ks'], data['fracs'], data['frac_errs'], 0, 3)      # continue curve across whole region of K
+    Ks, fracs, frac_errs = lvf.pad_S_curve(data['Ks'], data['fracs'], data['frac_errs'], 0, 6)      # continue curve across whole region of K
     K50 = data['K50']
     K50_err = data['K50_err']
     return Ks, fracs, frac_errs, K50, K50_err
@@ -135,8 +134,8 @@ def main():
     delta = 1000
 
     # eigenvalues for rho=1, rho=0
-    K1 = 2 * (1+3*1)**(-0.5)
-    K0 = 2 * (1)**(-0.5)
+    K1 = 1
+    K0 = 3
     Kind = 1
 
     Jeigs_1 = onerun_eigs_rho(1, S, C, 1, delta)
@@ -147,17 +146,17 @@ def main():
 
     # load in S curve data 
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    rho_dir = os.path.join(current_dir, '..', '..', 'data', 'S_curves', 'B_rho')
-    ind_dir = os.path.join(current_dir, '..', '..', 'data', 'S_curves', 'B_ind')
+    rho_dir = os.path.join(current_dir, '..', '..', 'data', 'S_curves', '3stage', 'B_rho')
+    ind_dir = os.path.join(current_dir, '..', '..', 'data', 'S_curves', '3stage', 'B_ind')
     onestage_dir = os.path.join(current_dir, '..', '..', 'data', 'S_curves', 'one_stage')
 
     Ks_onestage, fracs_onestage, errs_onestage, K50_onestage, K50_err_onestage = get_Scurve_data(onestage_dir, 'one_stage_S1000_500rpk.npz')
 
-    rho1_files = ['B_rho1.00_S25_1000rpk.npz', 'B_rho1.00_S100_500rpk.npz', 'B_rho1.00_S1000_500rpk.npz']
+    rho1_files = ['B_L3_rho_1.00_S25_500rpk.npz', 'B_L3_rho_1.00_S100_500rpk.npz', 'B_L3_rho_1.00_S100_500rpk.npz']
     Ks_list_rho1, fracs_list_rho1, errs_list_rho1, K50_list_rho1, K50_err_list_rho1 = zip(*[get_Scurve_data(rho_dir, f) for f in rho1_files])
-    rho0_files = ['B_rho0.00_S25_1000rpk.npz', 'B_rho0.00_S100_500rpk.npz', 'B_rho0.00_S1000_500rpk.npz']
+    rho0_files = ['B_L3_rho_0.00_S25_500rpk.npz', 'B_L3_rho_0.00_S100_500rpk.npz', 'B_L3_rho_0.00_S100_500rpk.npz']
     Ks_list_rho0, fracs_list_rho0, errs_list_rho0, K50_list_rho0, K50_err_list_rho0 = zip(*[get_Scurve_data(rho_dir, f) for f in rho0_files])
-    Bind_files = ['B_ind_S25_500rpk.npz', 'B_ind_S100_500rpk.npz', 'B_ind_S1000_500rpk.npz']
+    Bind_files = ['B_L3_ind_S25_500rpk.npz', 'B_L3_ind_S100_500rpk.npz', 'B_L3_ind_S1000_200rpk.npz']
     Ks_list_Bind, fracs_list_Bind, errs_list_Bind, K50_list_Bind, K50_err_list_Bind = zip(*[get_Scurve_data(ind_dir, f) for f in Bind_files])
     
 
@@ -166,9 +165,9 @@ def main():
 
     # set up plots
     box_props = dict(boxstyle='square', facecolor='white', alpha=0, edgecolor='None')
-    rho1text = r'2 stages, $B_{\rho}$, $\rho=1$'+f' \nS = {S}, C = {C}, K = {K1:.1f}'
-    rho0text = r'2 stages, $B_{\rho}$, $\rho=0$'+f' \nS = {S}, C = {C}, K = {K0:.1f}'
-    indtext = r'2 stages, $B_{ind}$'+f' \nS = {S}, C = {C}, K = {Kind:.1f}'
+    rho1text = r'3, $B_{\rho}$, $\rho=1$'+f' \nS = {S}, C = {C}, K = {K1:.1f}'
+    rho0text = r'3 stages, $B_{\rho}$, $\rho=0$'+f' \nS = {S}, C = {C}, K = {K0:.1f}'
+    indtext = r'3 stages, $B_{ind}$'+f' \nS = {S}, C = {C}, K = {Kind:.1f}'
     eigcol = 'olivedrab'
     Scols = ['lightskyblue', 'dodgerblue', 'blue']
     Scol1 = 'grey'
@@ -196,7 +195,7 @@ def main():
     S_curve_panel(s1, Ks_onestage, fracs_onestage, errs_onestage, K50_onestage, K50_err_onestage, Ks_list_rho1, fracs_list_rho1, errs_list_rho1, K50_list_rho1, K50_err_list_rho1, 
                   K1, (0.7, 1.4), r'2 stages, $\rho=1$', first_panel=True)
     S_curve_panel(s0, Ks_onestage, fracs_onestage, errs_onestage, K50_onestage, K50_err_onestage, Ks_list_rho0, fracs_list_rho0, errs_list_rho0, K50_list_rho0, K50_err_list_rho0,
-                  K0, (0.7, 3), r'2 stages, $\rho=0$')
+                  K0, (2, 5), r'2 stages, $\rho=0$')
     S_curve_panel(sind, Ks_onestage, fracs_onestage, errs_onestage, K50_onestage, K50_err_onestage, Ks_list_Bind, fracs_list_Bind, errs_list_Bind, K50_list_Bind, K50_err_list_Bind,
                   K1, (0.7, 1.4), r'2 stages, $B_{ind}$')
 
@@ -215,7 +214,7 @@ def main():
     #eig_panel(eigind, Jeigs_ind, eindtext, (-20, 1))
 
     #plt.tight_layout()
-    plt.savefig(os.path.join(current_dir, '..', '..', 'figures', 'Scurves.pdf'), dpi=300, bbox_inches='tight')
+    plt.savefig(os.path.join(current_dir, '..', '..', 'figures', 'Scurves_34stage.pdf'), dpi=300, bbox_inches='tight')
     plt.show()
 
 if __name__ == "__main__":

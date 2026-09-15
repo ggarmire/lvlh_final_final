@@ -40,9 +40,10 @@ def S_curve_panel(ax,
     ax.minorticks_on()
     ax.grid(True, which='major', linestyle='--', alpha=0.7)
     ax.grid(True, which='minor', linestyle='--', alpha=0.3)
+    ax.plot([], [], 'x', color='black', ms=8, label='50% of \nruns stable')
     
     handles, labels_leg = ax.get_legend_handles_labels()
-    order = [0, 1]
+    order = [0, 3, 2, 1, 4]
     
     if first_panel:
         leg = ax.legend(
@@ -107,7 +108,7 @@ def main():
                  'Brho0.00_C1_S500_500rpk.npz']
     Ks_list_rho0, fracs_list_rho0, errs_list_rho0, K50_list_rho0, K50_err_list_rho0 = zip(*[get_Scurve_data(CS_dir, f) for f in rho0files])
 
-    indfiles = ['Bind_C0.001_S500_500rpk.npz', 
+    indfiles = ['Bind_C0.01_S500_500rpk.npz', 
                 'Bind_C0.1_S500_500rpk.npz', 
                 'Bind_C1.0_S500_500rpk.npz']
     Ks_list_ind, fracs_list_ind, errs_list_ind, K50_list_ind, K50_err_list_ind = zip(*[get_Scurve_data(CS_dir, f) for f in indfiles])
@@ -117,7 +118,7 @@ def main():
     
     #### PLOTTING BELOW HERE #### 
 
-    fig = plt.figure(figsize=(18, 6))
+    fig = plt.figure(figsize=(18, 8))
     gs = gridspec.GridSpec(2, 3, width_ratios=[1.3, 1, 1], height_ratios=[3, 1], wspace=0.25, hspace=0)
     
     # panel a
@@ -155,7 +156,7 @@ def main():
         loc='upper left')
     ax_K50s.grid(True, alpha=0.3)
     ax_K50s.axs[-1].tick_params(labelbottom=False, bottom=False)
-    ax_K50s.axs[0].text(-0.15, 1.05, '(a)', transform=ax_K50s.axs[0].transAxes, fontsize=16, va='bottom', ha='right')
+    #ax_K50s.axs[0].text(-0.15, 1.05, '(a)', transform=ax_K50s.axs[0].transAxes, fontsize=16, va='bottom', ha='right')
 
     ax_errs.axhline(0, color='grey', xmin=0, xmax=0.96, linestyle='--', lw=1)
     ax_errs.set_xlabel('connectance $C$', fontsize=12)
@@ -164,27 +165,6 @@ def main():
     
     ax_errs.set_xlim(ax_K50s.axs[-1].get_xlim())
 
-
-
-    '''# right side: heatmap 
-
-    C_grid1, K_grid1 = np.meshgrid(data_frac['Cs'], data_frac['Ks'], indexing='ij')
-    c1 = ax_heat.pcolormesh(
-        C_grid1, K_grid1, data_frac['stable_fracs'], 
-        cmap='RdBu', vmin=0.0, vmax=1.0, shading='nearest'
-    )
-    
-    cbar1 = fig.colorbar(c1, ax=ax_heat)
-    cbar1.set_label('fraction of runs stable', rotation=90, labelpad=10)
-    ax_heat.set_xlabel('connectance $C$', fontsize=12)
-    ax_heat.set_ylabel('complexity $K$', fontsize=12)
-    ax_heat.set_ylim(1.75, 2.25)
-    ax_heat.text(-0.1, 1.02, '(b)', transform=ax_heat.transAxes, fontsize=16, va='bottom', ha='right')
-    text_box_style = dict(boxstyle='square,pad=0.5', facecolor='white', alpha=0.5, edgecolor='none')
-    ax_heat.text(0.95, 0.97, r'2 stages with $\rho$=0, $S$=500, $\Delta$=1000'+'\n'+'200 runs per point',
-                    transform=ax_heat.transAxes, fontsize=10, verticalalignment='top', horizontalalignment='right', bbox=text_box_style
-        )
-    '''
 
     #  S curves:
 
@@ -195,16 +175,20 @@ def main():
     S_curve_panel(
         ax_S0,
         Ks_list_rho0, fracs_list_rho0, errs_list_rho0, K50_list_rho0, K50_err_list_rho0,
-        K0, (1.7, 2.5), r'2 stages, $\rho=0$'+'\n'+r'$S$=500, $\Delta$=1000', first_panel=True
+        K0, (1.8, 2.4), r'2 stages, $\rho=0$'+'\n'+r'$S$=500, $\Delta$=1000', first_panel=True
     )
-
+    
     ax_Sind = fig.add_subplot(gs[:,2])
     S_curve_panel(
         ax_Sind,
         Ks_list_ind, fracs_list_ind, errs_list_ind, K50_list_ind, K50_err_list_ind,
-        Kind, (0.7, 1.5), r'2 stages, $B_{ind}$'+'\n'+r'$S$=500, $\Delta$=1000', first_panel=True
+        Kind, (0.9, 1.2), r'2 stages, $B_{ind}$'+'\n'+r'$S$=500, $\Delta$=1000', first_panel=True
     )
-    
+
+    ax_K50s.axs[0].text(-0.1, 1.05, '(a)', transform=ax_K50s.axs[0].transAxes, fontsize=16, va='bottom', ha='right')
+    ax_S0.text(-0.05, 1.03,'(b)', transform=ax_S0.transAxes, fontsize=16, va='bottom', ha='right')
+    ax_Sind.text(-0.05, 1.03,'(c)', transform=ax_Sind.transAxes, fontsize=16, va='bottom', ha='right')
+
     plt.tight_layout()
     plt.savefig('figures/C_2stage_fig.pdf', dpi=300, bbox_inches='tight')
 

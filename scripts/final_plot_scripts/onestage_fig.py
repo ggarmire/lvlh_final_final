@@ -119,7 +119,7 @@ def main():
 
     # S curve panel 
     S_cols = ['lightskyblue', 'dodgerblue', 'blue']
-    labels = ['S=1000', 'S=100', 'S=25']
+    labels = ['S=25', 'S=100', 'S=1000']
     nlist = len(S_cols)
 
     Ks_list = Ks_25, Ks_100, Ks_1000
@@ -148,7 +148,18 @@ def main():
     ax_s.grid(True, which='major', linestyle='--', alpha=0.7)
     ax_s.grid(True, which='minor', linestyle='--', alpha=0.3)
 
-    leg = ax_s.legend(title='One Stage, C=1', title_fontproperties={'size':12}, loc = 'upper right', fancybox=False, framealpha=0.3, edgecolor='white')
+    handles, labels = ax_s.get_legend_handles_labels()
+    order = [0, 3, 2, 1, 4]  
+
+    leg = ax_s.legend(
+        [handles[idx] for idx in order], 
+        [labels[idx] for idx in order], 
+        title='One Stage, C=1', 
+        title_fontproperties={'size':12},
+        loc = 'upper right', 
+        fancybox=False, 
+        framealpha=0.3, 
+        edgecolor='white')
     leg.get_frame().set_linewidth(0.5)
     legend_texts = leg.get_texts()
     legend_texts[-1].set_fontsize(9)
