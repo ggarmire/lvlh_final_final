@@ -15,3 +15,7 @@ figures/
 
 # OS system files
 .DS_Store
+
+# specific files 
+scripts/final_plot_scripts/Scurves_fig_3_and_4stage.py
+scripts/final_plot_scripts/Scurves_fig_4stage.py
