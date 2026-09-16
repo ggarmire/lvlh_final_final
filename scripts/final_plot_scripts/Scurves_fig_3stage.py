@@ -5,15 +5,15 @@ import matplotlib.gridspec as gridspec
 import os 
 from brokenaxes import brokenaxes
 
-def onerun_eigs_rho(rho, S, C, Bseed, delta):
+def onerun_eigs_rho(rho, K, S, C, Bseed, delta):
     ''' 
     get the eigenvalues for 1 run with C1, Brho; to then plot
     '''
-    K = 2 * (1+3*rho)**(-0.5)
+    print(f'rho {rho}, K {K}')
     sigma = K* (S*C)**(-0.5)      #C=1 here 
-    L = 2
+    L = 3
     B = lvf.B_rho(S, C, sigma, Bseed, L, rho)
-    R = lvf.R_star_2stage_delta(B, delta)
+    R = lvf.R_star_3stage_delta(B, delta)
     Jac = lvf.Jacobian(B, R)
     Jeigs = np.linalg.eigvals(Jac)
     return Jeigs 
@@ -23,16 +23,15 @@ def onerun_eigs_Bind(K, S, C, Bseed, delta):
     get the eigenvalues for 1 run with C1, Bind; to then plot
     '''
     sigma = K* (S*C)**(-0.5)      #C=1 here 
-    B = lvf.B_ind(S, C, sigma, L=2, seed=Bseed)
-    R = lvf.R_star_2stage_delta(B, delta)
+    B = lvf.B_ind(S, C, sigma, L=3, seed=Bseed)
+    R = lvf.R_star_3stage_delta(B, delta)
     Jac = lvf.Jacobian(B, R)
     Jeigs = np.linalg.eigvals(Jac)
     return Jeigs 
 
-
 def get_Scurve_data(dir, filename):
     data = np.load(os.path.join(dir, filename))
-    Ks, fracs, frac_errs = lvf.pad_S_curve(data['Ks'], data['fracs'], data['frac_errs'], 0, 3)      # continue curve across whole region of K
+    Ks, fracs, frac_errs = lvf.pad_S_curve(data['Ks'], data['fracs'], data['frac_errs'], 0, 6)      # continue curve across whole region of K
     K50 = data['K50']
     K50_err = data['K50_err']
     return Ks, fracs, frac_errs, K50, K50_err
@@ -41,7 +40,7 @@ def S_curve_panel(ax, Ks_onestage, fracs_onestage, frac_errs_onestage, K50_onest
                 Ks_list, fracs_list, frac_errs_list, K50_list, K50_err_list, 
                 K50_threshold, xlims, legend_title, first_panel=False):
     S_cols = ['lightskyblue', 'dodgerblue', 'blue']
-    labels = [ 'S=25', 'S=100','S=1000']
+    labels = [ 'S=25', 'S=100','S=500']
     Scol1 = 'grey'
     ax.fill_between(Ks_onestage, fracs_onestage-frac_errs_onestage, fracs_onestage+frac_errs_onestage, alpha=0.3, color=Scol1)
     ax.plot(Ks_onestage, fracs_onestage, '-', alpha=0.5, lw = 5, color=Scol1, label='one stage, S=1000')
@@ -80,8 +79,7 @@ def S_curve_panel(ax, Ks_onestage, fracs_onestage, frac_errs_onestage, K50_onest
             edgecolor='white'
         )
         leg.get_texts()[-1].set_fontsize(8)
-        ax.set_ylabel(r'fraction of runs stable for given $K$', fontsize=10)  
-          
+        ax.set_ylabel(r'fraction of runs stable for given $K$', fontsize=10)    
     else:
         leg = ax.legend(
             [],
@@ -101,28 +99,22 @@ def S_curve_panel(ax, Ks_onestage, fracs_onestage, frac_errs_onestage, K50_onest
     #    leg = ax.legend(title=legend_title, title_fontproperties={'size':11}, loc='upper right', fancybox=False, framealpha=0.3, edgecolor='white')
     #    leg.get_frame().set_linewidth(0.5)
     
-def eig_panel(ax, Jeigs, text, ylim=(-2.1, 2.1), first_panel=False):
+
+def eig_panel(ax, Jeigs, text, first_panel=False):
     box_props = dict(boxstyle='square', facecolor='white', alpha=0.6, edgecolor='None')
     colors = np.where(np.real(Jeigs) > 0, 'red', 'green')
+    
     ax.axhline(0, color='black', linewidth=1, linestyle='--')
     ax.axvline(0, color='black', linewidth=1, linestyle='--')
     ax.scatter(np.real(Jeigs), np.imag(Jeigs), c=colors, s=3)
     ax.set_xlabel(r'Re($\lambda_{J}$)', labelpad=20)
-    if ylim is not None:
-        ax.set_ylim(ylim)
-    target_ax = ax.axs[0]
-        
-    break_left = ax.axs[0].get_xlim()[1]
-    break_right = ax.axs[1].get_xlim()[0]
     
-    ax.axs[0].text(break_left, 0, '/', fontsize=14, weight= 300, ha='center', va='center', zorder=10)
-    ax.axs[1].text(break_right, 0, '/', fontsize=14, ha='center', va='center', zorder=10)
-    #ax.text(0.05, 0.97, text, transform=ax.transAxes, fontsize=9, verticalalignment='top', bbox=box_props)
-        
-    target_ax.text(0.05, 0.97, text, transform=target_ax.transAxes, fontsize=9, verticalalignment='top', bbox=box_props)
+    target_ax = ax.axs[0]
+    target_ax.text(0.05, 0.97, text, transform=target_ax.transAxes, 
+                   fontsize=9, verticalalignment='top', bbox=box_props)
 
     if first_panel:
-        ax.set_ylabel(r'Im($\lambda_{J}$)')
+        ax.set_ylabel(r'Im($\lambda_{J}$)', labelpad=30)
 
 
 
@@ -136,89 +128,81 @@ def main():
     delta = 1000
 
     # eigenvalues for rho=1, rho=0
-    K1 = 2 * (1+3*1)**(-0.5)
-    K0 = 2 * (1)**(-0.5)
+    K1 = 1
+    K0 = 3
     Kind = 1
 
-    Jeigs_1 = onerun_eigs_rho(1, S, C, 1, delta)
-    Jeigs_0 = onerun_eigs_rho(0, S, C, 2, delta)
+    Jeigs_1 = onerun_eigs_rho(1, K1, S, C, 1, delta)
+    Jeigs_0 = onerun_eigs_rho(0, K0, S, C, 2, delta)
 
     # eigenvalues for Bind case 
     Jeigs_ind = onerun_eigs_Bind(1, S, C, 4, delta)
 
     # load in S curve data 
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    rho_dir = os.path.join(current_dir, '..', '..', 'data', 'S_curves', 'B_rho')
-    ind_dir = os.path.join(current_dir, '..', '..', 'data', 'S_curves', 'B_ind')
+    rho_dir = os.path.join(current_dir, '..', '..', 'data', 'S_curves', '3stage', 'B_rho')
+    ind_dir = os.path.join(current_dir, '..', '..', 'data', 'S_curves', '3stage', 'B_ind')
     onestage_dir = os.path.join(current_dir, '..', '..', 'data', 'S_curves', 'one_stage')
 
     Ks_onestage, fracs_onestage, errs_onestage, K50_onestage, K50_err_onestage = get_Scurve_data(onestage_dir, 'one_stage_S1000_500rpk.npz')
 
-    rho1_files = ['B_rho1.00_S25_1000rpk.npz', 'B_rho1.00_S100_500rpk.npz', 'B_rho1.00_S1000_500rpk.npz']
+    rho1_files = ['B_L3_rho_1.00_S25_200rpk.npz', 'B_L3_rho_1.00_S100_200rpk.npz', 'B_L3_rho_1.00_S500_200rpk.npz']
     Ks_list_rho1, fracs_list_rho1, errs_list_rho1, K50_list_rho1, K50_err_list_rho1 = zip(*[get_Scurve_data(rho_dir, f) for f in rho1_files])
-    rho0_files = ['B_rho0.00_S25_1000rpk.npz', 'B_rho0.00_S100_500rpk.npz', 'B_rho0.00_S1000_500rpk.npz']
+    rho0_files = ['B_L3_rho_0.00_S25_200rpk.npz', 'B_L3_rho_0.00_S100_200rpk.npz', 'B_L3_rho_0.00_S500_200rpk.npz']
     Ks_list_rho0, fracs_list_rho0, errs_list_rho0, K50_list_rho0, K50_err_list_rho0 = zip(*[get_Scurve_data(rho_dir, f) for f in rho0_files])
-    Bind_files = ['B_ind_S25_500rpk.npz', 'B_ind_S100_500rpk.npz', 'B_ind_S1000_500rpk.npz']
+    Bind_files = ['B_L3_ind_S25_200rpk.npz', 'B_L3_ind_S100_200rpk.npz', 'B_L3_ind_S500_200rpk.npz']
     Ks_list_Bind, fracs_list_Bind, errs_list_Bind, K50_list_Bind, K50_err_list_Bind = zip(*[get_Scurve_data(ind_dir, f) for f in Bind_files])
     
 
-
-
-
-    # set up plots
-    box_props = dict(boxstyle='square', facecolor='white', alpha=0, edgecolor='None')
-    eigcol = 'olivedrab'
-    Scols = ['lightskyblue', 'dodgerblue', 'blue']
-    Scol1 = 'grey'
-    axfontsize = 10
-
-
-    fig = plt.figure(figsize=(15, 10))
-    gs = gridspec.GridSpec(2, 3, height_ratios=[6,2.5], width_ratios=[2, 2, 2], hspace=0.3, wspace=0.3)
+    fig = plt.figure(figsize=(15, 13))
+    gs = gridspec.GridSpec(2, 3, height_ratios=[6,4], width_ratios=[2, 2, 2], hspace=0.2, wspace=0.2)
     s1 = fig.add_subplot(gs[0, 0])
     s0 = fig.add_subplot(gs[0, 1])
     sind = fig.add_subplot(gs[0, 2])
 
     # for broken axis: 
-    xlims_broken1 = ((-2017, -1998), (-6, 2))
-    xlims_broken0 = ((-2015, -1998), (-6, 2))
-    xlims_brokenind = ((-2010, -1998), (-6, 2))
-    eig1 = brokenaxes(xlims=xlims_broken1, subplot_spec=gs[1, 0], fig=fig, wspace=0.06, d=0.005, tilt=70)
-    eig0 = brokenaxes(xlims=xlims_broken0, subplot_spec=gs[1, 1], fig=fig,  wspace=0.06, d=0.005, tilt=70)
-    eigind = brokenaxes(xlims=xlims_brokenind, subplot_spec=gs[1, 2], fig=fig,  wspace=0.06, d=0.005, tilt=70)
+    xlims_broken1 = ((-1520, -1499), (-6.5, 1.5))
+    xlims_broken0 = ((-1520, -1499), (-6.5, 1.5))
+    xlims_brokenind = ((-1520, -1499), (-6.5, 1.5))
 
+    ylims_broken1 = ((-877, -865), (-4, 4), (865, 877))
+    ylims_broken0 = ((-876, -865), (-4, 4), (865, 876))
+    ylims_brokenind = ((-876, -865), (-4, 4), (865, 876))
 
+    eig1 = brokenaxes(xlims=xlims_broken1, ylims=ylims_broken1, subplot_spec=gs[1, 0], 
+                      fig=fig, wspace=0.15, hspace=0.15, d=0.005, tilt=45)
+    eig0 = brokenaxes(xlims=xlims_broken0, ylims=ylims_broken0, subplot_spec=gs[1, 1], 
+                      fig=fig, wspace=0.15, hspace=0.15, d=0.005, tilt=45)
+    eigind = brokenaxes(xlims=xlims_brokenind, ylims=ylims_brokenind, subplot_spec=gs[1, 2], 
+                        fig=fig, wspace=0.15, hspace=0.15, d=0.005, tilt=45)
+    
     # S curve plots 
     
-    box_props = dict(boxstyle='square,pad=0.3', facecolor='white', alpha=0.3, edgecolor='White')
-    param_text = rf'$\Delta$ = {delta}'+'\n'+'nruns = 200'
     # panel 1: 
     S_curve_panel(s1, Ks_onestage, fracs_onestage, errs_onestage, K50_onestage, K50_err_onestage, Ks_list_rho1, fracs_list_rho1, errs_list_rho1, K50_list_rho1, K50_err_list_rho1, 
-                  K1, (0.7, 1.4), r'2 stages, $\rho=1$', first_panel=True)
+                  K1, (0.7, 1.4), r'3 stages, $\rho=1$', first_panel=True)
     S_curve_panel(s0, Ks_onestage, fracs_onestage, errs_onestage, K50_onestage, K50_err_onestage, Ks_list_rho0, fracs_list_rho0, errs_list_rho0, K50_list_rho0, K50_err_list_rho0,
-                  K0, (0.7, 3), r'2 stages, $\rho=0$')
+                  K0, (2, 5), r'3 stages, $\rho=0$')
     S_curve_panel(sind, Ks_onestage, fracs_onestage, errs_onestage, K50_onestage, K50_err_onestage, Ks_list_Bind, fracs_list_Bind, errs_list_Bind, K50_list_Bind, K50_err_list_Bind,
-                  K1, (0.7, 1.4), r'2 stages, $B_{ind}$')
+                  K1, (0.7, 1.4), r'3 stages, $B_{ind}$')
 
+    box_props = dict(boxstyle='square,pad=0.3', facecolor='white', alpha=0.3, edgecolor='White')
+    param_text = rf'$\Delta$ = {delta}'+'\n'+'nruns = 200'
     s1.text(0.03, 0.03, param_text, transform=s1.transAxes, 
-                fontsize=9, verticalalignment='bottom', bbox=box_props, zorder=10)
+                    fontsize=9, verticalalignment='bottom', bbox=box_props, zorder=10)
     s0.text(0.03, 0.03, param_text, transform=s0.transAxes, 
                 fontsize=9, verticalalignment='bottom', bbox=box_props, zorder=10)
     sind.text(0.03, 0.03, param_text, transform=sind.transAxes, 
                 fontsize=9, verticalalignment='bottom', bbox=box_props, zorder=10)
 
 
-
-
     # eigenvalue plots 
-    e1text = r'2 stages, $B_{\rho}$, $\rho=1$, '+f'K = {K1:.1f}'+'\n'+rf'S = {S}, C = {C}, $\Delta$=1000'
-    e0text = r'2 stages, $B_{\rho}$, $\rho=0$, '+f'K = {K0:.1f}'+'\n'+rf'S = {S}, C = {C}, $\Delta$=1000'
-    eindtext = r'2 stages, $B_{ind}$, '+f'K = {Kind:.1f}'+' \n'+rf'S = {S}, C = {C}, $\Delta$=1000'
+    e1text = r'3 stages, $B_{\rho}$, $\rho=1$, '+f'K = {K1:.1f}'+'\n'+rf'S = {S}, C = {C}, $\Delta$=1000'
+    e0text = r'3 stages, $B_{\rho}$, $\rho=0$, '+f'K = {K0:.1f}'+'\n'+rf'S = {S}, C = {C}, $\Delta$=1000'
+    eindtext = r'3 stages, $B_{ind}$, '+f'K = {Kind:.1f}'+' \n'+rf'S = {S}, C = {C}, $\Delta$=1000'
+    
 
-
-
-
-    eig_panel(eig1, Jeigs_1, e1text, (-2.1, 2.1), first_panel=True)
+    eig_panel(eig1, Jeigs_1, e1text, first_panel=True)
     eig_panel(eig0, Jeigs_0, e0text)
     eig_panel(eigind, Jeigs_ind, eindtext)
     #eig_panel(eig0, Jeigs_0, e0text, (-20, 1))
@@ -231,13 +215,25 @@ def main():
     eig0.text(-0.1, 1.05, '(e)', transform=eig0.axs[0].transAxes, fontsize=16, va='bottom', ha='right')
     eigind.text(-0.1, 1.05, '(f)', transform=eigind.axs[0].transAxes, fontsize=16, va='bottom', ha='right')
         
+    for ax in [eig1, eig0, eigind]:
+        ax.plot([-6.5, 1.5], [-4, -4], color='grey', linestyle='--', alpha = 0.7, zorder=1)
+        ax.plot([-6.5, 1.5], [4, 4], color='grey', linestyle='--', alpha = 0.7, zorder=1)
+        ax.plot([-6.5, -6.5], [-4, 4], color='grey', linestyle='--', alpha = 0.7, zorder=1)
+        ax.plot([-1520, -1499], [865, 865], color='grey', linestyle='--', alpha = 0.7, zorder=1)
+        ax.plot([-1520, -1499], [-865, -865], color='grey', linestyle='--', alpha = 0.7, zorder=1)
+        ax.plot([-1499, -1499], [-865, -879], color='grey', linestyle='--', alpha = 0.7, zorder=1)
+        ax.plot([-1499, -1499], [865, 879], color='grey', linestyle='--', alpha = 0.7, zorder=1)
 
-    #plt.tight_layout()
+    '''for bax in [eig1, eig0, eigind]:
+            for y_val in y_breaks:
+                # Draw across the right-hand segment
+                bax.plot([-6.5, 1.5], [y_val, y_val], color='grey', linestyle='--', alpha=0.7, zorder=1)
+                # Draw across the left-hand segment
+                bax.plot([-1520, -1499], [y_val, y_val], color='grey', linestyle='--', alpha=0.7, zorder=1)
+    '''
+    plt.tight_layout()
     plt.savefig(os.path.join(current_dir, '..', '..', 'figures', 'Scurves_3stage.pdf'), dpi=300, bbox_inches='tight')
     plt.show()
 
 if __name__ == "__main__":
     main()
-
-
-

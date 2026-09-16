@@ -5,7 +5,7 @@ import matplotlib.gridspec as gridspec
 import os 
 from brokenaxes import brokenaxes
 
-def onerun_eigs_rho(rho, S, C, Bseed, delta):
+def onerun_eigs_rho_3(rho, S, C, Bseed, delta):
     ''' 
     get the eigenvalues for 1 run with C1, Brho; to then plot
     '''
@@ -18,12 +18,36 @@ def onerun_eigs_rho(rho, S, C, Bseed, delta):
     Jeigs = np.linalg.eigvals(Jac)
     return Jeigs 
 
-def onerun_eigs_Bind(K, S, C, Bseed, delta):
+def onerun_eigs_Bind_3(K, S, C, Bseed, delta):
     ''' 
     get the eigenvalues for 1 run with C1, Bind; to then plot
     '''
     sigma = K* (S*C)**(-0.5)      #C=1 here 
     B = lvf.B_ind(S, C, sigma, L=3, seed=Bseed)
+    R = lvf.R_star_3stage_delta(B, delta)
+    Jac = lvf.Jacobian(B, R)
+    Jeigs = np.linalg.eigvals(Jac)
+    return Jeigs 
+
+def onerun_eigs_rho_4(rho, S, C, Bseed, delta):
+    ''' 
+    get the eigenvalues for 1 run with C1, Brho; to then plot
+    '''
+    K = 2 * (1+3*rho)**(-0.5)
+    sigma = K* (S*C)**(-0.5)      #C=1 here 
+    L = 4
+    B = lvf.B_rho(S, C, sigma, Bseed, L, rho)
+    R = lvf.R_star_3stage_delta(B, delta)
+    Jac = lvf.Jacobian(B, R)
+    Jeigs = np.linalg.eigvals(Jac)
+    return Jeigs 
+
+def onerun_eigs_Bind_4(K, S, C, Bseed, delta):
+    ''' 
+    get the eigenvalues for 1 run with C1, Bind; to then plot
+    '''
+    sigma = K* (S*C)**(-0.5)      #C=1 here 
+    B = lvf.B_ind(S, C, sigma, L=4, seed=Bseed)
     R = lvf.R_star_3stage_delta(B, delta)
     Jac = lvf.Jacobian(B, R)
     Jeigs = np.linalg.eigvals(Jac)
@@ -135,38 +159,51 @@ def main():
 
     # eigenvalues for rho=1, rho=0
     K1 = 1
-    K0 = 3
+    K0_3 = 3
+    K0_4 = 4
     Kind = 1
 
-    Jeigs_1 = onerun_eigs_rho(1, S, C, 1, delta)
-    Jeigs_0 = onerun_eigs_rho(0, S, C, 2, delta)
+    Jeigs_1_3 = onerun_eigs_rho_3(K1, S, C, 1, delta)
+    Jeigs_0_3 = onerun_eigs_rho_3(K0_3, S, C, 2, delta)
+    Jeigs_1_4 = onerun_eigs_rho_4(K1, S, C, 1, delta)
+    Jeigs_0_4 = onerun_eigs_rho_4(K0_4, S, C, 2, delta)
 
     # eigenvalues for Bind case 
-    Jeigs_ind = onerun_eigs_Bind(1, S, C, 4, delta)
+    Jeigs_ind_3 = onerun_eigs_Bind_3(Kind, S, C, 4, delta)
+    Jeigs_ind_4 = onerun_eigs_Bind_4(Kind, S, C, 4, delta)
 
-    # load in S curve data 
+    # load in S curve data: 3 stage 
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    rho_dir = os.path.join(current_dir, '..', '..', 'data', 'S_curves', '3stage', 'B_rho')
-    ind_dir = os.path.join(current_dir, '..', '..', 'data', 'S_curves', '3stage', 'B_ind')
+    rho_dir_3 = os.path.join(current_dir, '..', '..', 'data', 'S_curves', '3stage', 'B_rho')
+    ind_dir_3 = os.path.join(current_dir, '..', '..', 'data', 'S_curves', '3stage', 'B_ind')
+    rho_dir_4 = os.path.join(current_dir, '..', '..', 'data', 'S_curves', '4stage', 'B_rho')
+    ind_dir_4 = os.path.join(current_dir, '..', '..', 'data', 'S_curves', '4stage', 'B_ind')
+        
     onestage_dir = os.path.join(current_dir, '..', '..', 'data', 'S_curves', 'one_stage')
 
     Ks_onestage, fracs_onestage, errs_onestage, K50_onestage, K50_err_onestage = get_Scurve_data(onestage_dir, 'one_stage_S1000_500rpk.npz')
 
-    rho1_files = ['B_L3_rho_1.00_S25_500rpk.npz', 'B_L3_rho_1.00_S100_500rpk.npz', 'B_L3_rho_1.00_S100_500rpk.npz']
-    Ks_list_rho1, fracs_list_rho1, errs_list_rho1, K50_list_rho1, K50_err_list_rho1 = zip(*[get_Scurve_data(rho_dir, f) for f in rho1_files])
-    rho0_files = ['B_L3_rho_0.00_S25_500rpk.npz', 'B_L3_rho_0.00_S100_500rpk.npz', 'B_L3_rho_0.00_S100_500rpk.npz']
-    Ks_list_rho0, fracs_list_rho0, errs_list_rho0, K50_list_rho0, K50_err_list_rho0 = zip(*[get_Scurve_data(rho_dir, f) for f in rho0_files])
-    Bind_files = ['B_L3_ind_S25_500rpk.npz', 'B_L3_ind_S100_500rpk.npz', 'B_L3_ind_S1000_200rpk.npz']
-    Ks_list_Bind, fracs_list_Bind, errs_list_Bind, K50_list_Bind, K50_err_list_Bind = zip(*[get_Scurve_data(ind_dir, f) for f in Bind_files])
-    
+    rho1_files_3 = ['B_L3_rho_1.00_S25_500rpk.npz', 'B_L3_rho_1.00_S100_500rpk.npz', 'B_L3_rho_1.00_S100_500rpk.npz']
+    rho0_files_3 = ['B_L3_rho_0.00_S25_500rpk.npz', 'B_L3_rho_0.00_S100_500rpk.npz', 'B_L3_rho_0.00_S100_500rpk.npz']
+    Bind_files_3 = ['B_L3_ind_S25_500rpk.npz', 'B_L3_ind_S100_500rpk.npz', 'B_L3_ind_S1000_200rpk.npz']
 
+    rho1_files_4 = ['B_L4_rho_1.00_S25_500rpk.npz', 'B_L4_rho_1.00_S100_200rpk.npz', 'B_L4_rho_1.00_S100_200rpk.npz']
+    rho0_files_4 = ['B_L4_rho_0.00_S25_500rpk.npz', 'B_L4_rho_0.00_S100_200rpk.npz', 'B_L4_rho_0.00_S100_200rpk.npz']
+    Bind_files_4 = ['B_L4_ind_S25_500rpk.npz', 'B_L4_ind_S100_500rpk.npz', 'B_L4_ind_S100_500rpk.npz']
 
+    Ks_list_rho1_3, fracs_list_rho1_3, errs_list_rho1_3, K50_list_rho1_3, K50_err_list_rho1_3 = zip(*[get_Scurve_data(rho_dir_3, f) for f in rho1_files_3])
+    Ks_list_rho0_3, fracs_list_rho0_3, errs_list_rho0_3, K50_list_rho0_3, K50_err_list_rho0_3 = zip(*[get_Scurve_data(rho_dir_3, f) for f in rho0_files_3])
+    Ks_list_Bind_3, fracs_list_Bind_3, errs_list_Bind_3, K50_list_Bind_3, K50_err_list_Bind_3 = zip(*[get_Scurve_data(ind_dir_3, f) for f in Bind_files_3])
 
+    Ks_list_rho1_4, fracs_list_rho1_4, errs_list_rho1_4, K50_list_rho1_4, K50_err_list_rho1_4 = zip(*[get_Scurve_data(rho_dir_4, f) for f in rho1_files_4])
+    Ks_list_rho0_4, fracs_list_rho0_4, errs_list_rho0_4, K50_list_rho0_4, K50_err_list_rho0_4 = zip(*[get_Scurve_data(rho_dir_4, f) for f in rho0_files_4])
+    Ks_list_Bind_4, fracs_list_Bind_4, errs_list_Bind_4, K50_list_Bind_4, K50_err_list_Bind_4 = zip(*[get_Scurve_data(ind_dir_4, f) for f in Bind_files_4])
+        
 
     # set up plots
     box_props = dict(boxstyle='square', facecolor='white', alpha=0, edgecolor='None')
     rho1text = r'3, $B_{\rho}$, $\rho=1$'+f' \nS = {S}, C = {C}, K = {K1:.1f}'
-    rho0text = r'3 stages, $B_{\rho}$, $\rho=0$'+f' \nS = {S}, C = {C}, K = {K0:.1f}'
+    rho0text = r'3 stages, $B_{\rho}$, $\rho=0$'+f' \nS = {S}, C = {C}, K = {K0_3:.1f}'
     indtext = r'3 stages, $B_{ind}$'+f' \nS = {S}, C = {C}, K = {Kind:.1f}'
     eigcol = 'olivedrab'
     Scols = ['lightskyblue', 'dodgerblue', 'blue']
@@ -174,42 +211,68 @@ def main():
     axfontsize = 10
 
 
-    fig = plt.figure(figsize=(15, 10))
-    gs = gridspec.GridSpec(2, 3, height_ratios=[6,2.5], width_ratios=[2, 2, 2], hspace=0.3, wspace=0.3)
-    s1 = fig.add_subplot(gs[0, 0])
-    s0 = fig.add_subplot(gs[0, 1])
-    sind = fig.add_subplot(gs[0, 2])
+    fig = plt.figure(figsize=(15, 20))
+    gs = gridspec.GridSpec(4, 3, height_ratios=[6,2.5, 6,2.5], width_ratios=[2, 2, 2], hspace=0.3, wspace=0.3)
+    s1_3 = fig.add_subplot(gs[0, 0])
+    s0_3 = fig.add_subplot(gs[0, 1])
+    sind_3 = fig.add_subplot(gs[0, 2])
+
+    s1_4 = fig.add_subplot(gs[2, 0])
+    s0_4 = fig.add_subplot(gs[2, 1])
+    sind_4 = fig.add_subplot(gs[2, 2])
 
     # for broken axis: 
-    xlims_broken1 = ((-2017, -1998), (-6, 2))
-    xlims_broken0 = ((-2015, -1998), (-6, 2))
-    xlims_brokenind = ((-2010, -1998), (-6, 2))
-    eig1 = brokenaxes(xlims=xlims_broken1, subplot_spec=gs[1, 0], fig=fig, wspace=0.06, d=0.005, tilt=70)
-    eig0 = brokenaxes(xlims=xlims_broken0, subplot_spec=gs[1, 1], fig=fig,  wspace=0.06, d=0.005, tilt=70)
-    eigind = brokenaxes(xlims=xlims_brokenind, subplot_spec=gs[1, 2], fig=fig,  wspace=0.06, d=0.005, tilt=70)
+    xlims_broken1_3 = ((-2017, -1998), (-6, 2))
+    xlims_broken0_3 = ((-2015, -1998), (-6, 2))
+    xlims_brokenind_3 = ((-2010, -1998), (-6, 2))
+    eig1_3 = brokenaxes(xlims=xlims_broken1_3, subplot_spec=gs[1, 0], fig=fig, wspace=0.06, d=0.005, tilt=70)
+    eig0_3 = brokenaxes(xlims=xlims_broken0_3, subplot_spec=gs[1, 1], fig=fig,  wspace=0.06, d=0.005, tilt=70)
+    eigind_3 = brokenaxes(xlims=xlims_brokenind_3, subplot_spec=gs[1, 2], fig=fig,  wspace=0.06, d=0.005, tilt=70)
 
+
+    xlims_broken1_4 = ((-2017, -1998), (-6, 2))
+    xlims_broken0_4 = ((-2015, -1998), (-6, 2))
+    xlims_brokenind_4 = ((-2010, -1998), (-6, 2))
+    
+    eig1_4 = brokenaxes(xlims=xlims_broken1_4, subplot_spec=gs[3, 0], fig=fig, wspace=0.06, d=0.005, tilt=70)
+    eig0_4 = brokenaxes(xlims=xlims_broken0_4, subplot_spec=gs[3, 1], fig=fig,  wspace=0.06, d=0.005, tilt=70)
+    eigind_4 = brokenaxes(xlims=xlims_brokenind_4, subplot_spec=gs[3, 2], fig=fig,  wspace=0.06, d=0.005, tilt=70)
 
     # S curve plots 
     
     # panel 1: 
-    S_curve_panel(s1, Ks_onestage, fracs_onestage, errs_onestage, K50_onestage, K50_err_onestage, Ks_list_rho1, fracs_list_rho1, errs_list_rho1, K50_list_rho1, K50_err_list_rho1, 
-                  K1, (0.7, 1.4), r'2 stages, $\rho=1$', first_panel=True)
-    S_curve_panel(s0, Ks_onestage, fracs_onestage, errs_onestage, K50_onestage, K50_err_onestage, Ks_list_rho0, fracs_list_rho0, errs_list_rho0, K50_list_rho0, K50_err_list_rho0,
-                  K0, (2, 5), r'2 stages, $\rho=0$')
-    S_curve_panel(sind, Ks_onestage, fracs_onestage, errs_onestage, K50_onestage, K50_err_onestage, Ks_list_Bind, fracs_list_Bind, errs_list_Bind, K50_list_Bind, K50_err_list_Bind,
-                  K1, (0.7, 1.4), r'2 stages, $B_{ind}$')
+    S_curve_panel(s1_3, Ks_onestage, fracs_onestage, errs_onestage, K50_onestage, K50_err_onestage, Ks_list_rho1_3, fracs_list_rho1_3, errs_list_rho1_3, K50_list_rho1_3, K50_err_list_rho1_3, 
+                  K1, (0.7, 1.4), r'3 stages, $\rho=1$', first_panel=True)
+    S_curve_panel(s0_3, Ks_onestage, fracs_onestage, errs_onestage, K50_onestage, K50_err_onestage, Ks_list_rho0_3, fracs_list_rho0_3, errs_list_rho0_3, K50_list_rho0_3, K50_err_list_rho0_3,
+                  K0_3, (2, 5), r'3 stages, $\rho=0$')
+    S_curve_panel(sind_3, Ks_onestage, fracs_onestage, errs_onestage, K50_onestage, K50_err_onestage, Ks_list_Bind_3, fracs_list_Bind_3, errs_list_Bind_3, K50_list_Bind_3, K50_err_list_Bind_3,
+                  K1, (0.7, 1.4), r'3 stages, $B_{ind}$')
+
+    S_curve_panel(s1_4, Ks_onestage, fracs_onestage, errs_onestage, K50_onestage, K50_err_onestage, Ks_list_rho1_4, fracs_list_rho1_4, errs_list_rho1_4, K50_list_rho1_4, K50_err_list_rho1_4, 
+                      K1, (0.7, 1.4), r'4 stages, $\rho=1$', first_panel=False)
+    S_curve_panel(s0_4, Ks_onestage, fracs_onestage, errs_onestage, K50_onestage, K50_err_onestage, Ks_list_rho0_4, fracs_list_rho0_4, errs_list_rho0_4, K50_list_rho0_4, K50_err_list_rho0_4,
+                      K0_4, (2, 5), r'4 stages, $\rho=0$')
+    S_curve_panel(sind_4, Ks_onestage, fracs_onestage, errs_onestage, K50_onestage, K50_err_onestage, Ks_list_Bind_4, fracs_list_Bind_4, errs_list_Bind_4, K50_list_Bind_4, K50_err_list_Bind_4,
+                      K1, (0.7, 1.4), r'4 stages, $B_{ind}$')
 
     # eigenvalue plots 
-    e1text = r'2 stages, $B_{\rho}$, $\rho=1$'+f' \nS = {S}, C = {C}, K = {K1:.1f}'
-    e0text = r'2 stages, $B_{\rho}$, $\rho=0$'+f' \nS = {S}, C = {C}, K = {K0:.1f}'
-    eindtext = r'2 stages, $B_{ind}$'+f' \nS = {S}, C = {C}, K = {Kind:.1f}'
+    e1text_3 = r'2 stages, $B_{\rho}$, $\rho=1$'+f' \nS = {S}, C = {C}, K = {K1:.1f}'
+    e0text_3 = r'2 stages, $B_{\rho}$, $\rho=0$'+f' \nS = {S}, C = {C}, K = {K0_3:.1f}'
+    eindtext_3 = r'2 stages, $B_{ind}$'+f' \nS = {S}, C = {C}, K = {Kind:.1f}'
+
+    e1text_4 = r'2 stages, $B_{\rho}$, $\rho=1$'+f' \nS = {S}, C = {C}, K = {K1:.1f}'
+    e0text_4 = r'2 stages, $B_{\rho}$, $\rho=0$'+f' \nS = {S}, C = {C}, K = {K0_4:.1f}'
+    eindtext_4 = r'2 stages, $B_{ind}$'+f' \nS = {S}, C = {C}, K = {Kind:.1f}'
 
     
 
 
-    eig_panel(eig1, Jeigs_1, e1text, (-2.1, 2.1), first_panel=True)
-    eig_panel(eig0, Jeigs_0, e0text)
-    eig_panel(eigind, Jeigs_ind, eindtext)
+    eig_panel(eig1_3, Jeigs_1_3, e1text_3, (-2.1, 2.1), first_panel=True)
+    eig_panel(eig0_3, Jeigs_0_3, e0text_3)
+    eig_panel(eigind_3, Jeigs_ind_3, eindtext_3)
+    eig_panel(eig1_4, Jeigs_1_4, e1text_4, (-2.1, 2.1), first_panel=True)
+    eig_panel(eig0_4, Jeigs_0_4, e0text_4)
+    eig_panel(eigind_4, Jeigs_ind_4, eindtext_4)
     #eig_panel(eig0, Jeigs_0, e0text, (-20, 1))
     #eig_panel(eigind, Jeigs_ind, eindtext, (-20, 1))
 

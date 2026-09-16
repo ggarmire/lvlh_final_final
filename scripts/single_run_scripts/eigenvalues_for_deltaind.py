@@ -11,7 +11,7 @@ def main():
     seed = 1
     print(f'seed={seed}')
 
-    S = 250
+    S = 200
 
     delta = 1000
 
@@ -19,13 +19,13 @@ def main():
 
     C = 1
 
-    Kset = 0.8
+    Kset = 1
 
     sigma = Kset * (S*C)**(-0.5)
     K = sigma * (S*C)**0.5
 
-    B = lvf.B_ind(S, C, sigma, L=2, seed=seed)
-    R = lvf.R_star_2stage_delta(B, delta)
+    B = lvf.B_ind(S, C, sigma, L=3, seed=seed)
+    R = lvf.R_star_3stage_delta(B, delta)
     Jac = lvf.Jacobian(B, R)
     Jeigs = np.linalg.eigvals(Jac)
 
@@ -72,6 +72,10 @@ def main():
     ax2.grid('true')
     ax2.set_xlabel(r'Re($\lambda_{J}$)')
     #ax2.set_ylabel(r'Im($\lambda_{J}$)')
+
+    plt.figure()
+    plt.scatter(np.real(Jeigs), np.imag(Jeigs),c=colors, s=10, label='eigenvalues of J')
+    
 
 
     plt.show()

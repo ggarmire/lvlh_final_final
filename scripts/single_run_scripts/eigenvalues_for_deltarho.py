@@ -5,28 +5,40 @@ import time
 
 import lvlh_functions as lvf
 
+def onerun_eigs_rho(rho, K, S, C, Bseed, delta):
+    ''' 
+    get the eigenvalues for 1 run with C1, Brho; to then plot
+    '''
+    print(f'rho {rho}, K {K}')
+    sigma = K* (S*C)**(-0.5)      #C=1 here 
+    L = 3
+    B = lvf.B_rho(S, C, sigma, Bseed, L, rho)
+    R = lvf.R_star_3stage_delta(B, delta)
+    Jac = lvf.Jacobian(B, R)
+    Jeigs = np.linalg.eigvals(Jac)
+    return Jeigs 
+
 def main():
 
     seed = np.random.randint(0, 1000)
     seed = 1
     print(f'seed={seed}')
 
-    S = 250
+    S = 200
     rho = 0
 
     delta = 1000
-    nruns = 50
-
 
     C = 1
 
-    Kset = 1
+    Kset = 3
 
     sigma = Kset * (S*C)**(-0.5)
     K = sigma * (S*C)**0.5
 
-    B = lvf.B_rho(S, C, sigma, seed, L=2, rho=rho)
-    R = lvf.R_star_2stage_delta(B, delta)
+    B = lvf.B_rho(S, C, sigma, seed, L=3, rho=rho)
+    R = lvf.R_star_3stage_delta(B, delta)
+    
     Jac = lvf.Jacobian(B, R)
     Jeigs = np.linalg.eigvals(Jac)
 
@@ -73,6 +85,9 @@ def main():
     ax2.grid('true')
     ax2.set_xlabel(r'Re($\lambda_{J}$)')
     #ax2.set_ylabel(r'Im($\lambda_{J}$)')
+
+    plt.figure()
+    plt.scatter(np.real(Jeigs), np.imag(Jeigs),c=colors, s=10, label='eigenvalues of J')
 
 
     plt.show()
